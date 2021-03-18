@@ -1,6 +1,7 @@
 import argparse
 
 from .utils import file_utils
+from .lexer import lexer
 
 
 def run():
@@ -10,4 +11,8 @@ def run():
 
     source_code = file_utils.read_file(path=args.file_path)
 
-    print(source_code)
+    lexer_obj = lexer.Lexer(source_code=source_code)
+    tokens = lexer_obj.lexical_analyze()
+
+    for token in tokens:
+        print(token)
