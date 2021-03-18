@@ -10,7 +10,7 @@ class Parser:
     def __is_token_list_end(self):
         return self.__current_token_ptr >= len(self.__tokens)
 
-    def __get_current_token(self, pos=None):
+    def __get_token_from_pos(self, pos=None):
         return self.__tokens[self.__current_token_ptr] if pos == None else self.__tokens[pos]
 
     def __append_opcode(self, opcode):
@@ -26,7 +26,7 @@ class Parser:
         value = ""
         register = ""
         for expected_token_type in expected_token_sequence:
-            current_token = self.__get_current_token()
+            current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
                 current_token_type=current_token.token_type, 
                 expected_token_type=expected_token_type,
@@ -42,14 +42,30 @@ class Parser:
 
         return opcode.OpCode(op_code="mov", op_value=value + "---" + register)
 
+    def __parse_ret(self):
+        # ret
+        current_token = self.__get_token_from_pos()
+        expected_token_type = "ret"
+        token_utils.match_tokens(
+            current_token_type=current_token.token_type, 
+            expected_token_type=expected_token_type,
+            error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}"
+        )
+
+        self.__increment_token_ptr()
+
+        return opcode.OpCode(op_code="ret", op_value="")
+
     def parse(self):
         while not self.__is_token_list_end():
-           current_token = self.__get_current_token()
+           current_token = self.__get_token_from_pos()
 
            if current_token.token_type == "mov":
                current_opcode = self.__parse_mov()
                self.__append_opcode(opcode=current_opcode)
-               self.__increment_token_ptr()
+           elif current_token.token_type == "ret":
+               current_opcode = self.__parse_ret()
+               self.__append_opcode(opcode=current_opcode)
            else:
                self.__increment_token_ptr()
 
