@@ -1,3 +1,11 @@
 # Mock ASM Runtime
 
-- A simple assembler for a mock instruction set along with a runtime to run the resulting code.
+A simple assembler for a mock instruction set along with a runtime to run the resulting code.
+
+## Installation
+
+```bash
+user@programmer~:$ pip install git+https://github.com/frankhart2018/mockasm-runtime.git
+```
+
+**Note**:- I do not plan in pushing this to pypi anytime soon (or maybe ever).
