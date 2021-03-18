@@ -19,6 +19,9 @@ class Lexer:
 
     def __increment_source_ptr(self, by=None):
         self.current_source_ptr += 1 if by == None else by
+    
+    def __increment_line_num(self):
+        self.line_num += 1
 
     def __is_source_end(self):
         return self.current_source_ptr >= len(self.source_code)
@@ -35,23 +38,43 @@ class Lexer:
             char = self.__get_char_from_pos()
             if char == " " or char == "\n":
                 break
-
+            elif not char.isalpha():
+                error_utils.error(msg="Cannot have non-alphabetic character in keyword or register name")
+                
             lexeme += char
             self.__increment_source_ptr()
 
         if not self.__is_keyword(lexeme=lexeme):
             error_utils.error(msg=f"{lexeme} is not a keyword")
             
-        return token.Token(lexeme=lexeme, line_num=self.line_num)
+        return token.Token(lexeme=lexeme, token_type="keyword", line_num=self.line_num)
+
+    def __identify_number(self):
+        lexeme = ""
+        while not self.__is_source_end():
+            char = self.__get_char_from_pos()
+            if char == " " or char == "\n":
+                break
+            elif not char.isdigit():
+                error_utils.error(msg="Cannot have non-numeric character in a number")
+
+            lexeme += char
+            self.__increment_source_ptr()
+
+        return token.Token(lexeme=lexeme, token_type="number", line_num=self.line_num)
 
     def lexical_analyze(self):
         while not self.__is_source_end():
             char = self.__get_char_from_pos()
-
             if char.isalpha():
                 token = self.__identify_keyword()
                 self.__append_token(token)
-            elif char == " ":
+            elif char == "$":
+                self.__increment_source_ptr()
+                token = self.__identify_number()
+                self.__append_token(token)
+            elif char == "\n":
+                self.__increment_line_num()
                 self.__increment_source_ptr()
             else:
                 self.__increment_source_ptr()
