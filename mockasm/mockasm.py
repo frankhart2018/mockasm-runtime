@@ -10,8 +10,12 @@ from .runtime import vm
 def run():
     argparser = argparse.ArgumentParser(description="Mock ASM")
     argparser.add_argument("--file_path", type=str, default="", help="Path to asm code")
-    argparser.add_argument("--tokens", action="store_true", default=False, help="Show tokens")
-    argparser.add_argument("--opcodes", action="store_true", default=False, help="Show opcodes")
+    argparser.add_argument(
+        "--tokens", action="store_true", default=False, help="Show tokens"
+    )
+    argparser.add_argument(
+        "--opcodes", action="store_true", default=False, help="Show opcodes"
+    )
     args = argparser.parse_args()
 
     source_code = file_utils.read_file(path=args.file_path)
@@ -39,4 +43,11 @@ def run():
             print(opcode)
 
     vm_obj = vm.VM(opcodes=opcodes)
+
+    if args.tokens or args.opcodes:
+        print()
+        print("*" * 50)
+        print("Output")
+        print("*" * 50)
+
     vm_obj.execute()

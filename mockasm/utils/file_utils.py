@@ -1,5 +1,6 @@
 from . import error_utils
 
+
 def read_file(path):
     if path == "":
         error_utils.error(msg="File path cannot be empty while reading a file!")

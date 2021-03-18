@@ -12,6 +12,8 @@ class Lexer:
         self.__opcodes = [
             "mov",
             "ret",
+            "add",
+            "sub",
         ]
 
         self.__registers = [
@@ -19,11 +21,15 @@ class Lexer:
         ]
 
     def __get_char_from_pos(self, pos=None):
-        return self.__source_code[self.__current_source_ptr] if pos == None else self.__source_code[pos]
+        return (
+            self.__source_code[self.__current_source_ptr]
+            if pos == None
+            else self.__source_code[pos]
+        )
 
     def __increment_source_ptr(self, by=None):
         self.__current_source_ptr += 1 if by == None else by
-    
+
     def __increment_line_num(self):
         self.__line_num += 1
 
@@ -45,17 +51,20 @@ class Lexer:
             char = self.__get_char_from_pos()
             if not char.isalpha():
                 break
-                
+
             lexeme += char
             self.__increment_source_ptr()
 
         if self.__is_keyword(lexeme=lexeme):
-            return token.Token(lexeme=lexeme, token_type=lexeme, line_num=self.__line_num)
+            return token.Token(
+                lexeme=lexeme, token_type=lexeme, line_num=self.__line_num
+            )
         elif self.__is_register(lexeme=lexeme):
-            return token.Token(lexeme=lexeme, token_type="register", line_num=self.__line_num)
+            return token.Token(
+                lexeme=lexeme, token_type="register", line_num=self.__line_num
+            )
 
         error_utils.error(msg=f"{lexeme} is not a keyword or a register")
-            
 
     def __identify_number(self):
         lexeme = ""
@@ -84,7 +93,9 @@ class Lexer:
                 self.__increment_line_num()
                 self.__increment_source_ptr()
             elif char == ",":
-                current_token = token.Token(lexeme=",", token_type="comma", line_num=self.__line_num)
+                current_token = token.Token(
+                    lexeme=",", token_type="comma", line_num=self.__line_num
+                )
                 self.__append_token(token=current_token)
                 self.__increment_source_ptr()
             else:

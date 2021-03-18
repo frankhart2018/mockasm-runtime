@@ -29,9 +29,7 @@ def get_version(rel_path):
 setup(
     name="mockasm",
     version=get_version("mockasm/__init__.py"),
-    description=(
-        "Assembler for a mock instruction set with a runtime"
-    ),
+    description=("Assembler for a mock instruction set with a runtime"),
     long_description=README,
     long_description_content_type="text/markdown",
     url="https://github.com/frankhart2018/mockasm-runtime",
@@ -47,9 +45,5 @@ setup(
         "Programming Language :: Python :: 3.6",
     ],
     packages=[package for package in find_packages()],
-    entry_points={
-        'console_scripts': [
-            'mockasm = mockasm.mockasm:run'
-        ]
-    },
+    entry_points={"console_scripts": ["mockasm = mockasm.mockasm:run"]},
 )

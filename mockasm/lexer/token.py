@@ -20,4 +20,8 @@ class Token:
         return f"Token(lexeme=\033[91m{self.lexeme}\033[m, token_type=\033[91m{self.token_type}\033[m, line_num=\033[91m{self.line_num}\033[m)"
 
     def __eq__(self, other):
-        return self.lexeme == other.lexeme and self.token_type == other.token_type and self.line_num == other.line_num
+        return (
+            self.lexeme == other.lexeme
+            and self.token_type == other.token_type
+            and self.line_num == other.line_num
+        )
