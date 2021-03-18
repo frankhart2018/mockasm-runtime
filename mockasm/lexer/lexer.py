@@ -14,6 +14,10 @@ class Lexer:
             "ret",
         ]
 
+        self.registers = [
+            "rax",
+        ]
+
     def __get_char_from_pos(self, pos=None):
         return self.source_code[self.current_source_ptr] if pos == None else self.source_code[pos]
 
@@ -32,31 +36,33 @@ class Lexer:
     def __is_keyword(self, lexeme):
         return lexeme in self.opcodes
 
+    def __is_register(self, lexeme):
+        return lexeme in self.registers
+
     def __identify_keyword(self):
         lexeme = ""
         while not self.__is_source_end():
             char = self.__get_char_from_pos()
-            if char == " " or char == "\n":
+            if not char.isalpha():
                 break
-            elif not char.isalpha():
-                error_utils.error(msg="Cannot have non-alphabetic character in keyword or register name")
                 
             lexeme += char
             self.__increment_source_ptr()
 
-        if not self.__is_keyword(lexeme=lexeme):
-            error_utils.error(msg=f"{lexeme} is not a keyword")
+        if self.__is_keyword(lexeme=lexeme):
+            return token.Token(lexeme=lexeme, token_type="keyword", line_num=self.line_num)
+        elif self.__is_register(lexeme=lexeme):
+            return token.Token(lexeme=lexeme, token_type="register", line_num=self.line_num)
+
+        error_utils.error(msg=f"{lexeme} is not a keyword or a register")
             
-        return token.Token(lexeme=lexeme, token_type="keyword", line_num=self.line_num)
 
     def __identify_number(self):
         lexeme = ""
         while not self.__is_source_end():
             char = self.__get_char_from_pos()
-            if char == " " or char == "\n":
+            if not char.isdigit():
                 break
-            elif not char.isdigit():
-                error_utils.error(msg="Cannot have non-numeric character in a number")
 
             lexeme += char
             self.__increment_source_ptr()
@@ -66,15 +72,20 @@ class Lexer:
     def lexical_analyze(self):
         while not self.__is_source_end():
             char = self.__get_char_from_pos()
+
             if char.isalpha():
-                token = self.__identify_keyword()
-                self.__append_token(token)
+                current_token = self.__identify_keyword()
+                self.__append_token(token=current_token)
             elif char == "$":
                 self.__increment_source_ptr()
-                token = self.__identify_number()
-                self.__append_token(token)
+                current_token = self.__identify_number()
+                self.__append_token(token=current_token)
             elif char == "\n":
                 self.__increment_line_num()
+                self.__increment_source_ptr()
+            elif char == ",":
+                current_token = token.Token(lexeme=",", token_type="comma", line_num=self.line_num)
+                self.__append_token(token=current_token)
                 self.__increment_source_ptr()
             else:
                 self.__increment_source_ptr()
