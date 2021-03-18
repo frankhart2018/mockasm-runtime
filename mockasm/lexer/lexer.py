@@ -50,7 +50,7 @@ class Lexer:
             self.__increment_source_ptr()
 
         if self.__is_keyword(lexeme=lexeme):
-            return token.Token(lexeme=lexeme, token_type="keyword", line_num=self.__line_num)
+            return token.Token(lexeme=lexeme, token_type=lexeme, line_num=self.__line_num)
         elif self.__is_register(lexeme=lexeme):
             return token.Token(lexeme=lexeme, token_type="register", line_num=self.__line_num)
 
