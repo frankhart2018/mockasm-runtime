@@ -122,11 +122,15 @@ class Parser:
             elif current_token.token_type == "ret":
                 current_opcode = self.__parse_ret()
                 self.__append_opcode(opcode=current_opcode)
-            elif current_token.token_type in ["add", "sub", "imul"]:
+            elif current_token.token_type in ["add", "sub", "imul", "idiv"]:
                 current_opcode = self.__parse_arithmetic_op(
                     operator=current_token.token_type
                 )
                 self.__append_opcode(opcode=current_opcode)
+            elif current_token.token_type == "cqo":
+                current_opcode = opcode.OpCode(op_code="cqo", op_value="")
+                self.__append_opcode(opcode=current_opcode)
+                self.__increment_token_ptr()
             elif current_token.token_type in ["push", "pop"]:
                 current_opcode = self.__parse_stack_op(
                     operator=current_token.token_type

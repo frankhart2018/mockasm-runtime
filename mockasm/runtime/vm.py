@@ -78,6 +78,8 @@ class VM:
             new_value = existing_reg_value - value
         elif operator == "imul":
             new_value = existing_reg_value * value
+        elif operator == "idiv":
+            new_value = existing_reg_value // value
 
         self.__registers[register] = new_value
 
@@ -92,11 +94,13 @@ class VM:
             elif op_code.op_code == "ret":
                 self.__execute_return_instruction()
                 self.__increment_opcode_ptr()
-            elif op_code.op_code in ["add", "sub", "imul"]:
+            elif op_code.op_code in ["add", "sub", "imul", "idiv"]:
                 value, register = op_code.op_value.split("---")
                 self.__execute_arithmetic_operation(
                     value=value, register=register, operator=op_code.op_code
                 )
+                self.__increment_opcode_ptr()
+            elif op_code.op_code == "cqo":
                 self.__increment_opcode_ptr()
             elif op_code.op_code == "push":
                 self.__execute_push_to_stack(value=op_code.op_value)

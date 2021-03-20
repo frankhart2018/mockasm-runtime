@@ -15,6 +15,8 @@ class Lexer:
             "add",
             "sub",
             "imul",
+            "idiv",
+            "cqo",
             "push",
             "pop",
         ]
