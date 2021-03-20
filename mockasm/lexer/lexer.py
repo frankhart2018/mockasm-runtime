@@ -17,6 +17,7 @@ class Lexer:
             "imul",
             "idiv",
             "cqo",
+            "neg",
             "push",
             "pop",
         ]

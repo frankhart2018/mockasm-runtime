@@ -83,6 +83,12 @@ class VM:
 
         self.__registers[register] = new_value
 
+    def __execute_unary_operation(self, register):
+        if self.__registers[register] == None:
+            error_utils.error(msg=f"Register '{register}' has not been set, cannot negate empty value")
+
+        self.__registers[register] *= -1
+
     def execute(self):
         while not self.__is_opcode_list_end():
             op_code = self.__get_opcode_from_pos()
@@ -101,6 +107,9 @@ class VM:
                 )
                 self.__increment_opcode_ptr()
             elif op_code.op_code == "cqo":
+                self.__increment_opcode_ptr()
+            elif op_code.op_code == "neg":
+                self.__execute_unary_operation(register=op_code.op_value)
                 self.__increment_opcode_ptr()
             elif op_code.op_code == "push":
                 self.__execute_push_to_stack(value=op_code.op_value)

@@ -89,11 +89,11 @@ class Parser:
         return opcode.OpCode(op_code=operator, op_value=value + "---" + register)
 
     def __parse_stack_op(self, operator):
-        # push $number|<register>
+        # operator $number|<register>
+        # operator -> push/pop
         expected_token_sequence = [operator, "number,register"]
 
         value = ""
-        register = ""
         for expected_token_type in expected_token_sequence:
             if "," in expected_token_type:
                 expected_token_type = expected_token_type.split(",")
@@ -111,6 +111,29 @@ class Parser:
             self.__increment_token_ptr()
 
         return opcode.OpCode(op_code=operator, op_value=value)
+
+    def __parse_unary_op(self):
+        # neg <register>
+        expected_token_sequence = ["neg", "register"]
+
+        register = ""
+        for expected_token_type in expected_token_sequence:
+            if "," in expected_token_type:
+                expected_token_type = expected_token_type.split(",")
+
+            current_token = self.__get_token_from_pos()
+            token_utils.match_tokens(
+                current_token_type=current_token.token_type,
+                expected_token_types=[expected_token_type],
+                error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
+            )
+
+            if current_token.token_type == "register":
+                register = current_token.lexeme
+
+            self.__increment_token_ptr()
+
+        return opcode.OpCode(op_code="neg", op_value=register)
 
     def parse(self):
         while not self.__is_token_list_end():
@@ -131,6 +154,9 @@ class Parser:
                 current_opcode = opcode.OpCode(op_code="cqo", op_value="")
                 self.__append_opcode(opcode=current_opcode)
                 self.__increment_token_ptr()
+            elif current_token.token_type == "neg":
+                current_opcode = self.__parse_unary_op()
+                self.__append_opcode(opcode=current_opcode)
             elif current_token.token_type in ["push", "pop"]:
                 current_opcode = self.__parse_stack_op(
                     operator=current_token.token_type
