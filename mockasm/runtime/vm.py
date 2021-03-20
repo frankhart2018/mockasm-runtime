@@ -14,6 +14,8 @@ class VM:
             "rdi": None,
         }
 
+        self.__stack = []
+
     def __increment_opcode_ptr(self):
         self.__current_opcode_ptr += 1
 
@@ -26,6 +28,27 @@ class VM:
             if pos == None
             else self.__opcodes[pos]
         )
+
+    def __parse_value(self, value, error_msg):
+        old_value = value
+        value = int(value) if value not in self.__registers.keys() else self.__registers.get(value, 0)
+
+        if value == None:
+            error_utils.error(msg=error_msg.replace("{}", old_value))
+
+        return value
+
+    def __execute_push_to_stack(self, value):
+        value = self.__parse_value(
+            value=value,
+            error_msg="Register '{}' has not been set, you cannot push it to stack"
+        )
+
+        self.__stack.append(value)
+
+    def __execute_pop_from_stack(self, register):
+        value = self.__stack.pop()
+        self.__registers[register] = int(value)
 
     def __execute_move_instruction(self, value, register):
         self.__registers[register] = int(value)
@@ -42,10 +65,10 @@ class VM:
                 msg=f"Register {register} does not have any value, set a value to perform arithmetic operation"
             )
 
-        old_value = value
-        value = int(value) if value not in self.__registers.keys() else self.__registers.get(value, 0)
-        if value == None:
-            error_utils.error(msg=f"Register '{old_value}' has not been set")
+        value = self.__parse_value(
+            value=value,
+            error_msg="Register {} has not been set, you cannot perform " + operator + " operation"
+        )
 
         self.__registers[register] = (
             self.__registers[register] + value
@@ -69,4 +92,10 @@ class VM:
                 self.__execute_arithmetic_operation(
                     value=value, register=register, operator=op_code.op_code
                 )
+                self.__increment_opcode_ptr()
+            elif op_code.op_code == "push":
+                self.__execute_push_to_stack(value=op_code.op_value)
+                self.__increment_opcode_ptr()
+            elif op_code.op_code == "pop":
+                self.__execute_pop_from_stack(register=op_code.op_value)
                 self.__increment_opcode_ptr()

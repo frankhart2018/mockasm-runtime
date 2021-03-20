@@ -14,6 +14,8 @@ class Lexer:
             "ret",
             "add",
             "sub",
+            "push",
+            "pop",
         ]
 
         self.__registers = [
