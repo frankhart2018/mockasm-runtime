@@ -18,6 +18,7 @@ class Lexer:
 
         self.__registers = [
             "rax",
+            "rdi",
         ]
 
     def __get_char_from_pos(self, pos=None):

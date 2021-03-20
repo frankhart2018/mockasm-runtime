@@ -9,7 +9,10 @@ class VM:
         self.__clear_registers()
 
     def __clear_registers(self):
-        self.__registers = {"rax": None}
+        self.__registers = {
+            "rax": None,
+            "rdi": None,
+        }
 
     def __increment_opcode_ptr(self):
         self.__current_opcode_ptr += 1
@@ -39,7 +42,11 @@ class VM:
                 msg=f"Register {register} does not have any value, set a value to perform arithmetic operation"
             )
 
-        value = int(value)
+        old_value = value
+        value = int(value) if value not in self.__registers.keys() else self.__registers.get(value, 0)
+        if value == None:
+            error_utils.error(msg=f"Register '{old_value}' has not been set")
+
         self.__registers[register] = (
             self.__registers[register] + value
             if operator == "add"

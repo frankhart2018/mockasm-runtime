@@ -34,7 +34,7 @@ class Parser:
             current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
                 current_token_type=current_token.token_type,
-                expected_token_type=expected_token_type,
+                expected_token_types=[expected_token_type],
                 error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
             )
 
@@ -53,7 +53,7 @@ class Parser:
         expected_token_type = "ret"
         token_utils.match_tokens(
             current_token_type=current_token.token_type,
-            expected_token_type=expected_token_type,
+            expected_token_types=[expected_token_type],
             error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
         )
 
@@ -62,21 +62,24 @@ class Parser:
         return opcode.OpCode(op_code="ret", op_value="")
 
     def __parse_arithmetic_op(self, operator):
-        # operator $<number>, <register>
+        # operator $<number>|<register>, <register>
         # operator -> add/sub
-        expected_token_sequence = [operator, "number", "comma", "register"]
+        expected_token_sequence = [operator, "number,register", "comma", "register"]
 
         value = ""
         register = ""
         for expected_token_type in expected_token_sequence:
+            if "," in expected_token_type:
+                expected_token_type = expected_token_type.split(",")
+
             current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
                 current_token_type=current_token.token_type,
-                expected_token_type=expected_token_type,
+                expected_token_types=[expected_token_type] if type(expected_token_type) == str else expected_token_type,
                 error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
             )
 
-            if expected_token_type == "number":
+            if value == "" and (current_token.token_type == "number" or current_token.token_type == "register"):
                 value = current_token.lexeme
             elif expected_token_type == "register":
                 register = current_token.lexeme
