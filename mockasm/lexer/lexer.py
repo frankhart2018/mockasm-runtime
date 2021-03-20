@@ -14,6 +14,7 @@ class Lexer:
             "ret",
             "add",
             "sub",
+            "imul",
             "push",
             "pop",
         ]

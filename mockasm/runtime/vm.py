@@ -70,11 +70,16 @@ class VM:
             error_msg="Register {} has not been set, you cannot perform " + operator + " operation"
         )
 
-        self.__registers[register] = (
-            self.__registers[register] + value
-            if operator == "add"
-            else self.__registers[register] - value
-        )
+        new_value = 0
+        existing_reg_value = self.__registers[register]
+        if operator == "add":
+            new_value = existing_reg_value + value
+        elif operator == "sub":
+            new_value = existing_reg_value - value
+        elif operator == "imul":
+            new_value = existing_reg_value * value
+
+        self.__registers[register] = new_value
 
     def execute(self):
         while not self.__is_opcode_list_end():
@@ -87,7 +92,7 @@ class VM:
             elif op_code.op_code == "ret":
                 self.__execute_return_instruction()
                 self.__increment_opcode_ptr()
-            elif op_code.op_code in ["add", "sub"]:
+            elif op_code.op_code in ["add", "sub", "imul"]:
                 value, register = op_code.op_value.split("---")
                 self.__execute_arithmetic_operation(
                     value=value, register=register, operator=op_code.op_code

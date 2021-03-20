@@ -122,7 +122,7 @@ class Parser:
             elif current_token.token_type == "ret":
                 current_opcode = self.__parse_ret()
                 self.__append_opcode(opcode=current_opcode)
-            elif current_token.token_type in ["add", "sub"]:
+            elif current_token.token_type in ["add", "sub", "imul"]:
                 current_opcode = self.__parse_arithmetic_op(
                     operator=current_token.token_type
                 )
