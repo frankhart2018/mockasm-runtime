@@ -24,28 +24,32 @@ class Parser:
     def __increment_token_ptr(self, by=None):
         self.__current_token_ptr += 1 if by == None else by
 
-    def __parse_mov(self):
-        # mov $<number>, <register>
-        expected_token_sequence = ["mov", "number", "comma", "register"]
+    def __parse_mov(self, operator):
+        # operator $<number>, <register>
+        # operator -> mov/movzb
+        expected_token_sequence = [operator, "number,register", "comma", "register"]
 
         value = ""
         register = ""
         for expected_token_type in expected_token_sequence:
+            if "," in expected_token_type:
+                expected_token_type = expected_token_type.split(",")
+
             current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
                 current_token_type=current_token.token_type,
-                expected_token_types=[expected_token_type],
+                expected_token_types=[expected_token_type] if type(expected_token_type) == str else expected_token_type,
                 error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
             )
 
-            if expected_token_type == "number":
+            if value == "" and (current_token.token_type == "number" or current_token.token_type == "register"):
                 value = current_token.lexeme
             elif expected_token_type == "register":
                 register = current_token.lexeme
 
             self.__increment_token_ptr()
 
-        return opcode.OpCode(op_code="mov", op_value=value + "---" + register)
+        return opcode.OpCode(op_code=operator, op_value=value + "---" + register)
 
     def __parse_ret(self):
         # ret
@@ -139,8 +143,10 @@ class Parser:
         while not self.__is_token_list_end():
             current_token = self.__get_token_from_pos()
 
-            if current_token.token_type == "mov":
-                current_opcode = self.__parse_mov()
+            if current_token.token_type in ["mov", "movzb"]:
+                current_opcode = self.__parse_mov(
+                    operator=current_token.token_type
+                )
                 self.__append_opcode(opcode=current_opcode)
             elif current_token.token_type == "ret":
                 current_opcode = self.__parse_ret()

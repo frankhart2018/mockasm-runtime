@@ -51,7 +51,12 @@ class VM:
         self.__registers[register] = int(value)
 
     def __execute_move_instruction(self, value, register):
-        self.__registers[register] = int(value)
+        value = self.__parse_value(
+            value=value,
+            error_msg="Register '{}' has not been set, you cannot move it to '" + register + "'"
+        )
+
+        self.__registers[register] = value
 
     def __execute_return_instruction(self):
         for value in self.__registers.values():
@@ -93,7 +98,7 @@ class VM:
         while not self.__is_opcode_list_end():
             op_code = self.__get_opcode_from_pos()
 
-            if op_code.op_code == "mov":
+            if op_code.op_code in ["mov", "movzb"]:
                 value, register = op_code.op_value.split("---")
                 self.__execute_move_instruction(value=value, register=register)
                 self.__increment_opcode_ptr()

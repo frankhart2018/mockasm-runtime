@@ -11,6 +11,7 @@ class Lexer:
 
         self.__opcodes = [
             "mov",
+            "movzb",
             "ret",
             "add",
             "sub",
@@ -20,6 +21,11 @@ class Lexer:
             "neg",
             "push",
             "pop",
+            "cmp",
+            "sete",
+            "setne",
+            "setl",
+            "setle",
         ]
 
         self.__registers = [
