@@ -146,7 +146,19 @@ class VM:
             else:
                 self.__registers[register] = 0
 
-            self.__flags["negative"] = int(not self.__flags["negative"])
+            self.__flags["negative"] = 0
+            self.__flags["positive"] = 0
+        elif operator == "setle":
+            if negative_flag_val == 1 and positive_flag_val == 0:
+                self.__registers[register] = 1
+            elif zero_flag_val == 1:
+                self.__registers[register] = 1
+            else:
+                self.__registers[register] = 0
+
+            self.__flags["negative"] = 0
+            self.__flags["positive"] = 0
+            self.__flags["zero"] = 0
 
     def execute(self):
         while not self.__is_opcode_list_end():
