@@ -139,6 +139,53 @@ class Parser:
 
         return opcode.OpCode(op_code="neg", op_value=register)
 
+    def __parse_cmp(self):
+        # cmp $<number>|<register>, <register>
+        expected_token_sequence = ["cmp", "register", "comma", "register"]
+
+        src_register = ""
+        dest_register = ""
+        for expected_token_type in expected_token_sequence:
+            current_token = self.__get_token_from_pos()
+            token_utils.match_tokens(
+                current_token_type=current_token.token_type,
+                expected_token_types=[expected_token_type],
+                error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
+            )
+
+            if src_register == "" and current_token.token_type == "register":
+                src_register = current_token.lexeme
+            elif expected_token_type == "register":
+                dest_register = current_token.lexeme
+
+            self.__increment_token_ptr()
+
+        return opcode.OpCode(op_code="cmp", op_value=src_register + "---" + dest_register)
+
+    def __parse_set(self, operator):
+        # operator $number|<register>
+        # operator -> sete/setne/setl/setle
+        expected_token_sequence = [operator, "number,register"]
+
+        value = ""
+        for expected_token_type in expected_token_sequence:
+            if "," in expected_token_type:
+                expected_token_type = expected_token_type.split(",")
+
+            current_token = self.__get_token_from_pos()
+            token_utils.match_tokens(
+                current_token_type=current_token.token_type,
+                expected_token_types=[expected_token_type] if type(expected_token_type) == str else expected_token_type,
+                error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
+            )
+
+            if value == "" and (current_token.token_type == "number" or current_token.token_type == "register"):
+                value = current_token.lexeme
+
+            self.__increment_token_ptr()
+
+        return opcode.OpCode(op_code=operator, op_value=value)
+
     def parse(self):
         while not self.__is_token_list_end():
             current_token = self.__get_token_from_pos()
@@ -165,6 +212,14 @@ class Parser:
                 self.__append_opcode(opcode=current_opcode)
             elif current_token.token_type in ["push", "pop"]:
                 current_opcode = self.__parse_stack_op(
+                    operator=current_token.token_type
+                )
+                self.__append_opcode(opcode=current_opcode)
+            elif current_token.token_type == "cmp":
+                current_opcode = self.__parse_cmp()
+                self.__append_opcode(opcode=current_opcode)
+            elif current_token.token_type in ["sete", "setne", "setl", "setle"]:
+                current_opcode = self.__parse_set(
                     operator=current_token.token_type
                 )
                 self.__append_opcode(opcode=current_opcode)

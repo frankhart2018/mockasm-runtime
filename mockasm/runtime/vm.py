@@ -12,9 +12,16 @@ class VM:
         self.__registers = {
             "rax": None,
             "rdi": None,
+            "al": None,
         }
 
         self.__stack = []
+
+        self.__flags = {
+            "zero": 0,
+            "negative": 0,
+            "positive": 0,
+        }
 
     def __increment_opcode_ptr(self):
         self.__current_opcode_ptr += 1
@@ -94,6 +101,53 @@ class VM:
 
         self.__registers[register] *= -1
 
+    def __execute_compare(self, src_register, dst_register):
+        src_value = self.__parse_value(
+            value=src_register,
+            error_msg="Register '{}' has not been set, cannot use it in cmp"
+        )
+
+        dst_value = self.__parse_value(
+            value=dst_register,
+            error_msg="Register '{}' has not been set, cannot use it in cmp"
+        )
+
+        comparison_result = dst_value - src_value
+
+        if comparison_result < 0:
+            self.__flags["negative"] = 1
+        elif comparison_result == 0:
+            self.__flags["zero"] = 1
+        elif comparison_result > 0:
+            self.__flags["positive"] = 1
+
+    def __execute_comparison_op(self, operator, register):
+        zero_flag_val = self.__flags["zero"]
+        negative_flag_val = self.__flags["negative"]
+        positive_flag_val = self.__flags["positive"]
+
+        if operator == "sete":
+            if zero_flag_val == 1:
+                self.__registers[register] = 1
+            elif zero_flag_val == 0:
+                self.__registers[register] = 0
+
+            self.__flags["zero"] = 0 
+        elif operator == "setne":
+            if zero_flag_val == 1:
+                self.__registers[register] = 0
+            elif zero_flag_val == 0:
+                self.__registers[register] = 1
+
+            self.__flags["zero"] = 0
+        elif operator == "setl":
+            if negative_flag_val == 1 and positive_flag_val == 0:
+                self.__registers[register] = 1
+            else:
+                self.__registers[register] = 0
+
+            self.__flags["negative"] = int(not self.__flags["negative"])
+
     def execute(self):
         while not self.__is_opcode_list_end():
             op_code = self.__get_opcode_from_pos()
@@ -121,4 +175,17 @@ class VM:
                 self.__increment_opcode_ptr()
             elif op_code.op_code == "pop":
                 self.__execute_pop_from_stack(register=op_code.op_value)
+                self.__increment_opcode_ptr()
+            elif op_code.op_code == "cmp":
+                src_register, dst_register = op_code.op_value.split("---")
+                self.__execute_compare(
+                    src_register=src_register,
+                    dst_register=dst_register
+                )
+                self.__increment_opcode_ptr()
+            elif op_code.op_code in ["sete", "setne", "setl", "setle"]:
+                self.__execute_comparison_op(
+                    operator=op_code.op_code,
+                    register=op_code.op_value
+                )
                 self.__increment_opcode_ptr()
