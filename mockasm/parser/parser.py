@@ -27,7 +27,7 @@ class Parser:
     def __parse_mov(self, operator):
         # operator $<number>, <register>
         # operator -> mov/movzb
-        expected_token_sequence = [operator, "number,register", "comma", "register"]
+        expected_token_sequence = [operator, "number,register,location_at", "comma", "register,location_at"]
 
         value = ""
         register = ""
@@ -42,10 +42,10 @@ class Parser:
                 error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
             )
 
-            if value == "" and (current_token.token_type == "number" or current_token.token_type == "register"):
-                value = current_token.lexeme
-            elif expected_token_type == "register":
-                register = current_token.lexeme
+            if value == "" and current_token.token_type in ["number", "register", "location_at"]:
+                value = current_token.lexeme if current_token.token_type != "location_at" else "_" + current_token.lexeme
+            elif current_token.token_type in ["number", "register", "location_at"]:
+                register = current_token.lexeme if current_token.token_type != "location_at" else "_" + current_token.lexeme
 
             self.__increment_token_ptr()
 
@@ -186,6 +186,29 @@ class Parser:
 
         return opcode.OpCode(op_code=operator, op_value=value)
 
+    def __parse_lea(self):
+        # lea <address>, <register>
+        expected_token_sequence = ["lea", "address", "comma", "register"]
+
+        address = ""
+        register = ""
+        for expected_token_type in expected_token_sequence:
+            current_token = self.__get_token_from_pos()
+            token_utils.match_tokens(
+                current_token_type=current_token.token_type,
+                expected_token_types=[expected_token_type],
+                error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
+            )
+
+            if current_token.token_type == "address":
+                address = current_token.lexeme
+            elif expected_token_type == "register":
+                register = current_token.lexeme
+
+            self.__increment_token_ptr()
+
+        return opcode.OpCode(op_code="lea", op_value=address + "---" + register)
+
     def parse(self):
         while not self.__is_token_list_end():
             current_token = self.__get_token_from_pos()
@@ -222,6 +245,9 @@ class Parser:
                 current_opcode = self.__parse_set(
                     operator=current_token.token_type
                 )
+                self.__append_opcode(opcode=current_opcode)
+            elif current_token.token_type == "lea":
+                current_opcode = self.__parse_lea()
                 self.__append_opcode(opcode=current_opcode)
             else:
                 self.__increment_token_ptr()

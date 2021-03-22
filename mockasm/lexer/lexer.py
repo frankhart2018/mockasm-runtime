@@ -26,6 +26,7 @@ class Lexer:
             "setne",
             "setl",
             "setle",
+            "lea",
         ]
 
         self.__registers = [
@@ -92,6 +93,19 @@ class Lexer:
 
         return token.Token(lexeme=lexeme, token_type="number", line_num=self.__line_num)
 
+    def __identify_location_at(self):
+        self.__increment_source_ptr()
+
+        temp_token = self.__identify_keyword()
+        
+        current_char = self.__get_char_from_pos()
+        if current_char == ")":
+            return token.Token(
+                lexeme=f"{temp_token.lexeme}", token_type="location_at", line_num=temp_token.line_num
+            )
+        
+        error_utils.error(msg="Missing closing parantheses in location_at register")
+
     def lexical_analyze(self):
         while not self.__is_source_end():
             char = self.__get_char_from_pos()
@@ -101,7 +115,22 @@ class Lexer:
                 self.__append_token(token=current_token)
             elif char == "$":
                 self.__increment_source_ptr()
+                
+                is_address = False
+                current_char = self.__get_char_from_pos()
+                if current_char == '_':
+                    is_address = True
+                    self.__increment_source_ptr()
+
                 current_token = self.__identify_number()
+
+                if is_address:
+                    current_token = token.Token(
+                        lexeme=current_token.lexeme,
+                        token_type="address",
+                        line_num=current_token.line_num
+                    )
+
                 self.__append_token(token=current_token)
             elif char == "\n":
                 self.__increment_line_num()
@@ -112,6 +141,9 @@ class Lexer:
                 )
                 self.__append_token(token=current_token)
                 self.__increment_source_ptr()
+            elif char == "(":
+                current_token = self.__identify_location_at()
+                self.__append_token(token=current_token)
             else:
                 self.__increment_source_ptr()
 

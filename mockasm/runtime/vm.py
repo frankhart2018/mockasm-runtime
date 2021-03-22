@@ -23,6 +23,8 @@ class VM:
             "positive": 0,
         }
 
+        self.__memory = {}
+
     def __increment_opcode_ptr(self):
         self.__current_opcode_ptr += 1
 
@@ -38,7 +40,14 @@ class VM:
 
     def __parse_value(self, value, error_msg):
         old_value = value
-        value = int(value) if value not in self.__registers.keys() else self.__registers.get(value, 0)
+        
+        if not value.startswith("_") and value not in self.__registers.keys():
+            value = int(value)
+        else:
+            if value.startswith("_"):
+                value = self.__read_from_memory(mem_location=self.__registers[value[1:]])
+            else:
+                value = self.__registers[value]
 
         if value == None:
             error_utils.error(msg=error_msg.replace("{}", old_value))
@@ -55,15 +64,24 @@ class VM:
 
     def __execute_pop_from_stack(self, register):
         value = self.__stack.pop()
-        self.__registers[register] = int(value)
+        self.__registers[register] = int(value) if type(value) != int and not value.startswith("_") else value
+
+    def __store_in_memory(self, mem_location, value):
+        self.__memory[mem_location] = value
+
+    def __read_from_memory(self, mem_location):
+        return self.__memory.get(mem_location, None)
 
     def __execute_move_instruction(self, value, register):
         value = self.__parse_value(
             value=value,
             error_msg="Register '{}' has not been set, you cannot move it to '" + register + "'"
         )
-
-        self.__registers[register] = value
+        
+        if register.startswith("_"):
+            self.__store_in_memory(mem_location=self.__registers[register[1:]], value=value)
+        else:
+            self.__registers[register] = value
 
     def __execute_return_instruction(self):
         for value in self.__registers.values():
@@ -160,6 +178,9 @@ class VM:
             self.__flags["positive"] = 0
             self.__flags["zero"] = 0
 
+    def __execute_lea(self, address, register):
+        self.__registers[register] = "_" + address
+
     def execute(self):
         while not self.__is_opcode_list_end():
             op_code = self.__get_opcode_from_pos()
@@ -199,5 +220,12 @@ class VM:
                 self.__execute_comparison_op(
                     operator=op_code.op_code,
                     register=op_code.op_value
+                )
+                self.__increment_opcode_ptr()
+            elif op_code.op_code == "lea":
+                address, register = op_code.op_value.split("---")
+                self.__execute_lea(
+                    address=address,
+                    register=register
                 )
                 self.__increment_opcode_ptr()
