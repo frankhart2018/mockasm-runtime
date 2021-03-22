@@ -1,5 +1,7 @@
+from mockasm.utils import error_utils
 from ..utils import token_utils
 from . import opcode
+from mockasm import parser
 
 
 class Parser:
@@ -7,6 +9,9 @@ class Parser:
         self.__tokens = tokens
         self.__current_token_ptr = 0
         self.__opcodes = []
+        
+        self.__opcode_idx_to_label = {}
+        self.__label_to_opcode_idx = {}
 
     def __is_token_list_end(self):
         return self.__current_token_ptr >= len(self.__tokens)
@@ -23,6 +28,13 @@ class Parser:
 
     def __increment_token_ptr(self, by=None):
         self.__current_token_ptr += 1 if by == None else by
+
+    def __bind_label_idx_to_jmps(self):
+        for opcode_idx, label in self.__opcode_idx_to_label.items():
+            if label not in self.__label_to_opcode_idx.keys():
+                error_utils.error(msg=f"Cannot jump to unknown label '{label}'")
+
+            self.__opcodes[opcode_idx].op_value = self.__label_to_opcode_idx[label]
 
     def __parse_mov(self, operator):
         # operator $<number>, <register>
@@ -209,6 +221,52 @@ class Parser:
 
         return opcode.OpCode(op_code="lea", op_value=address + "---" + register)
 
+    def __parse_jmp(self):
+        # jmp <label>
+        expected_token_sequence = ["jmp", "label"]
+
+        label = ""
+        for expected_token_type in expected_token_sequence:
+            current_token = self.__get_token_from_pos()
+            token_utils.match_tokens(
+                current_token_type=current_token.token_type,
+                expected_token_types=[expected_token_type],
+                error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
+            )
+
+            if current_token.token_type == "label":
+                label = current_token.lexeme
+
+            self.__increment_token_ptr()
+
+        # Will be used at the end of parsing for label idx binding
+        self.__opcode_idx_to_label[len(self.__opcodes)] = label
+
+        return opcode.OpCode(op_code="jmp", op_value=label)
+
+    def __parse_label(self):
+        # label:
+        expected_token_sequence = ["label", "colon"]
+
+        label = ""
+        for expected_token_type in expected_token_sequence:
+            current_token = self.__get_token_from_pos()
+            token_utils.match_tokens(
+                current_token_type=current_token.token_type,
+                expected_token_types=[expected_token_type],
+                error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
+            )
+
+            if current_token.token_type == "label":
+                label = current_token.lexeme
+
+            self.__increment_token_ptr()
+
+        # Will be used at the end of parsing for label idx binding
+        self.__label_to_opcode_idx[label] = len(self.__opcodes)
+
+        return opcode.OpCode(op_code="label", op_value="")
+
     def parse(self):
         while not self.__is_token_list_end():
             current_token = self.__get_token_from_pos()
@@ -249,7 +307,16 @@ class Parser:
             elif current_token.token_type == "lea":
                 current_opcode = self.__parse_lea()
                 self.__append_opcode(opcode=current_opcode)
+            elif current_token.token_type == "jmp":
+                current_opcode = self.__parse_jmp()
+                self.__append_opcode(opcode=current_opcode)
+            elif current_token.token_type == "label":
+                current_opcode = self.__parse_label()
+                self.__append_opcode(opcode=current_opcode)
             else:
                 self.__increment_token_ptr()
+
+        # Bind all the labels to correct jmp statements
+        self.__bind_label_idx_to_jmps()
 
         return self.__opcodes

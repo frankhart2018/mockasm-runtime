@@ -11,6 +11,10 @@ class OpCode:
     def op_value(self):
         return self.__op_value
 
+    @op_value.setter
+    def op_value(self, op_value):
+        self.__op_value = op_value
+
     def __str__(self):
         return f"OpCode(op_code=\033[91m{self.op_code}\033[m, op_value=\033[91m{self.op_value}\033[m)"
 

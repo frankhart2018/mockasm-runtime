@@ -181,6 +181,9 @@ class VM:
     def __execute_lea(self, address, register):
         self.__registers[register] = "_" + address
 
+    def __execute_jmp(self, jmp_idx):
+        self.__current_opcode_ptr = jmp_idx
+
     def execute(self):
         while not self.__is_opcode_list_end():
             op_code = self.__get_opcode_from_pos()
@@ -228,4 +231,10 @@ class VM:
                     address=address,
                     register=register
                 )
+                self.__increment_opcode_ptr()
+            elif op_code.op_code == "jmp":
+                jmp_idx = int(op_code.op_value)
+                self.__execute_jmp(jmp_idx=jmp_idx)
+                self.__increment_opcode_ptr()
+            elif op_code.op_code == "label":
                 self.__increment_opcode_ptr()

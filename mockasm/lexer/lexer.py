@@ -1,5 +1,6 @@
 from . import token
 from ..utils import error_utils
+from mockasm import lexer
 
 
 class Lexer:
@@ -27,6 +28,7 @@ class Lexer:
             "setl",
             "setle",
             "lea",
+            "jmp",
         ]
 
         self.__registers = [
@@ -106,6 +108,25 @@ class Lexer:
         
         error_utils.error(msg="Missing closing parantheses in location_at register")
 
+    def __identify_label(self):
+        self.__increment_source_ptr()
+        self.__increment_source_ptr()
+
+        lexeme = ""
+
+        while not self.__is_source_end():
+            char = self.__get_char_from_pos()
+            if not char.isalpha():
+                break
+
+            lexeme += char
+            self.__increment_source_ptr()
+
+        return token.Token(
+            lexeme=lexeme, token_type="label", line_num=self.__line_num
+        )
+
+
     def lexical_analyze(self):
         while not self.__is_source_end():
             char = self.__get_char_from_pos()
@@ -144,6 +165,19 @@ class Lexer:
             elif char == "(":
                 current_token = self.__identify_location_at()
                 self.__append_token(token=current_token)
+            elif char == ".":
+                self.__increment_source_ptr()
+                current_char = self.__get_char_from_pos()
+                if current_char == "L":
+                    current_token = self.__identify_label()
+                    self.__append_token(token=current_token)
+                else:
+                    self.__increment_source_ptr()
+            elif char == ':':
+                self.__append_token(token.Token(
+                    lexeme=':', token_type='colon', line_num=self.__line_num
+                ))
+                self.__increment_source_ptr()
             else:
                 self.__increment_source_ptr()
 
