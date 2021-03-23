@@ -43,6 +43,7 @@ class Parser:
 
         value = ""
         register = ""
+        line_num = 0
         for expected_token_type in expected_token_sequence:
             if "," in expected_token_type:
                 expected_token_type = expected_token_type.split(",")
@@ -61,7 +62,9 @@ class Parser:
 
             self.__increment_token_ptr()
 
-        return opcode.OpCode(op_code=operator, op_value=value + "---" + register)
+            line_num = current_token.line_num
+
+        return opcode.OpCode(op_code=operator, op_value=value + "---" + register, line_num=line_num)
 
     def __parse_ret(self):
         # ret
@@ -75,7 +78,7 @@ class Parser:
 
         self.__increment_token_ptr()
 
-        return opcode.OpCode(op_code="ret", op_value="")
+        return opcode.OpCode(op_code="ret", op_value="", line_num=current_token.line_num)
 
     def __parse_arithmetic_op(self, operator):
         # operator $<number>|<register>, <register>
@@ -84,6 +87,7 @@ class Parser:
 
         value = ""
         register = ""
+        line_num = 0
         for expected_token_type in expected_token_sequence:
             if "," in expected_token_type:
                 expected_token_type = expected_token_type.split(",")
@@ -102,7 +106,9 @@ class Parser:
 
             self.__increment_token_ptr()
 
-        return opcode.OpCode(op_code=operator, op_value=value + "---" + register)
+            line_num = current_token.line_num
+
+        return opcode.OpCode(op_code=operator, op_value=value + "---" + register, line_num=line_num)
 
     def __parse_stack_op(self, operator):
         # operator $number|<register>
@@ -110,6 +116,7 @@ class Parser:
         expected_token_sequence = [operator, "number,register"]
 
         value = ""
+        line_num = 0
         for expected_token_type in expected_token_sequence:
             if "," in expected_token_type:
                 expected_token_type = expected_token_type.split(",")
@@ -126,13 +133,16 @@ class Parser:
 
             self.__increment_token_ptr()
 
-        return opcode.OpCode(op_code=operator, op_value=value)
+            line_num = current_token.line_num
+
+        return opcode.OpCode(op_code=operator, op_value=value, line_num=line_num)
 
     def __parse_unary_op(self):
         # neg <register>
         expected_token_sequence = ["neg", "register"]
 
         register = ""
+        line_num = 0
         for expected_token_type in expected_token_sequence:
             if "," in expected_token_type:
                 expected_token_type = expected_token_type.split(",")
@@ -149,7 +159,9 @@ class Parser:
 
             self.__increment_token_ptr()
 
-        return opcode.OpCode(op_code="neg", op_value=register)
+            line_num = current_token.line_num
+
+        return opcode.OpCode(op_code="neg", op_value=register, line_num=line_num)
 
     def __parse_cmp(self):
         # cmp $<number>|<register>, <register>
@@ -157,6 +169,7 @@ class Parser:
 
         src_register = ""
         dest_register = ""
+        line_num = 0
         for expected_token_type in expected_token_sequence:
             if "," in expected_token_type:
                 expected_token_type = expected_token_type.split(",")
@@ -175,7 +188,9 @@ class Parser:
 
             self.__increment_token_ptr()
 
-        return opcode.OpCode(op_code="cmp", op_value=src_register + "---" + dest_register)
+            line_num = current_token.line_num
+
+        return opcode.OpCode(op_code="cmp", op_value=src_register + "---" + dest_register, line_num=line_num)
 
     def __parse_set(self, operator):
         # operator $number|<register>
@@ -183,6 +198,7 @@ class Parser:
         expected_token_sequence = [operator, "number,register"]
 
         value = ""
+        line_num = 0
         for expected_token_type in expected_token_sequence:
             if "," in expected_token_type:
                 expected_token_type = expected_token_type.split(",")
@@ -199,7 +215,9 @@ class Parser:
 
             self.__increment_token_ptr()
 
-        return opcode.OpCode(op_code=operator, op_value=value)
+            line_num = current_token.line_num
+
+        return opcode.OpCode(op_code=operator, op_value=value, line_num=line_num)
 
     def __parse_lea(self):
         # lea <address>, <register>
@@ -207,6 +225,7 @@ class Parser:
 
         address = ""
         register = ""
+        line_num = 0
         for expected_token_type in expected_token_sequence:
             current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
@@ -222,7 +241,9 @@ class Parser:
 
             self.__increment_token_ptr()
 
-        return opcode.OpCode(op_code="lea", op_value=address + "---" + register)
+            line_num = current_token.line_num
+
+        return opcode.OpCode(op_code="lea", op_value=address + "---" + register, line_num=line_num)
 
     def __parse_jmp(self, operator):
         # operator <label>
@@ -230,6 +251,7 @@ class Parser:
         expected_token_sequence = [operator, "label"]
 
         label = ""
+        line_num = 0
         for expected_token_type in expected_token_sequence:
             current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
@@ -243,16 +265,19 @@ class Parser:
 
             self.__increment_token_ptr()
 
+            line_num = current_token.line_num
+
         # Will be used at the end of parsing for label idx binding
         self.__opcode_idx_to_label[len(self.__opcodes)] = label
 
-        return opcode.OpCode(op_code=operator, op_value=label)
+        return opcode.OpCode(op_code=operator, op_value=label, line_num=line_num)
 
     def __parse_label(self):
         # label:
         expected_token_sequence = ["label", "colon"]
 
         label = ""
+        line_num = 0
         for expected_token_type in expected_token_sequence:
             current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
@@ -266,10 +291,12 @@ class Parser:
 
             self.__increment_token_ptr()
 
+            current_token = line_num
+
         # Will be used at the end of parsing for label idx binding
         self.__label_to_opcode_idx[label] = len(self.__opcodes)
 
-        return opcode.OpCode(op_code="label", op_value="")
+        return opcode.OpCode(op_code="label", op_value="", line_num=line_num)
 
     def parse(self):
         while not self.__is_token_list_end():
@@ -289,7 +316,7 @@ class Parser:
                 )
                 self.__append_opcode(opcode=current_opcode)
             elif current_token.token_type == "cqo":
-                current_opcode = opcode.OpCode(op_code="cqo", op_value="")
+                current_opcode = opcode.OpCode(op_code="cqo", op_value="", line_num=current_token.line_num)
                 self.__append_opcode(opcode=current_opcode)
                 self.__increment_token_ptr()
             elif current_token.token_type == "neg":
