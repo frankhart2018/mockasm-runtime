@@ -127,6 +127,14 @@ class Lexer:
             lexeme=lexeme, token_type="label", line_num=self.__line_num
         )
 
+    def __skip_comments(self):
+        while not self.__is_source_end():
+            char = self.__get_char_from_pos()
+            if char == '\n':
+                self.__increment_line_num()
+                break
+
+            self.__increment_source_ptr()
 
     def lexical_analyze(self):
         while not self.__is_source_end():
@@ -179,6 +187,8 @@ class Lexer:
                     lexeme=':', token_type='colon', line_num=self.__line_num
                 ))
                 self.__increment_source_ptr()
+            elif char == '#':
+                self.__skip_comments()
             else:
                 self.__increment_source_ptr()
 
