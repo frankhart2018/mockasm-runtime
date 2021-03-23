@@ -29,6 +29,7 @@ class Lexer:
             "setle",
             "lea",
             "jmp",
+            "je",
         ]
 
         self.__registers = [
@@ -116,7 +117,7 @@ class Lexer:
 
         while not self.__is_source_end():
             char = self.__get_char_from_pos()
-            if not char.isalpha():
+            if not char.isalpha() and char != '_' and not char.isdigit():
                 break
 
             lexeme += char

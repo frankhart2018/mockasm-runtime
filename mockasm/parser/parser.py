@@ -153,19 +153,22 @@ class Parser:
 
     def __parse_cmp(self):
         # cmp $<number>|<register>, <register>
-        expected_token_sequence = ["cmp", "register", "comma", "register"]
+        expected_token_sequence = ["cmp", "number,register", "comma", "register"]
 
         src_register = ""
         dest_register = ""
         for expected_token_type in expected_token_sequence:
+            if "," in expected_token_type:
+                expected_token_type = expected_token_type.split(",")
+
             current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
                 current_token_type=current_token.token_type,
-                expected_token_types=[expected_token_type],
+                expected_token_types=[expected_token_type] if type(expected_token_type) == str else expected_token_type,
                 error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
             )
 
-            if src_register == "" and current_token.token_type == "register":
+            if src_register == "" and current_token.token_type in ["number", "register"]:
                 src_register = current_token.lexeme
             elif expected_token_type == "register":
                 dest_register = current_token.lexeme
@@ -221,9 +224,10 @@ class Parser:
 
         return opcode.OpCode(op_code="lea", op_value=address + "---" + register)
 
-    def __parse_jmp(self):
-        # jmp <label>
-        expected_token_sequence = ["jmp", "label"]
+    def __parse_jmp(self, operator):
+        # operator <label>
+        # operator -> jmp/je
+        expected_token_sequence = [operator, "label"]
 
         label = ""
         for expected_token_type in expected_token_sequence:
@@ -242,7 +246,7 @@ class Parser:
         # Will be used at the end of parsing for label idx binding
         self.__opcode_idx_to_label[len(self.__opcodes)] = label
 
-        return opcode.OpCode(op_code="jmp", op_value=label)
+        return opcode.OpCode(op_code=operator, op_value=label)
 
     def __parse_label(self):
         # label:
@@ -307,8 +311,10 @@ class Parser:
             elif current_token.token_type == "lea":
                 current_opcode = self.__parse_lea()
                 self.__append_opcode(opcode=current_opcode)
-            elif current_token.token_type == "jmp":
-                current_opcode = self.__parse_jmp()
+            elif current_token.token_type in ["jmp", "je"]:
+                current_opcode = self.__parse_jmp(
+                    operator=current_token.token_type
+                )
                 self.__append_opcode(opcode=current_opcode)
             elif current_token.token_type == "label":
                 current_opcode = self.__parse_label()

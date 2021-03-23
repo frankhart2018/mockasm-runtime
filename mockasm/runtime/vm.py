@@ -184,6 +184,10 @@ class VM:
     def __execute_jmp(self, jmp_idx):
         self.__current_opcode_ptr = jmp_idx
 
+    def __execute_conditional_jump(self, jmp_idx, on):
+        if self.__flags[on]:
+            self.__current_opcode_ptr = jmp_idx
+
     def execute(self):
         while not self.__is_opcode_list_end():
             op_code = self.__get_opcode_from_pos()
@@ -235,6 +239,10 @@ class VM:
             elif op_code.op_code == "jmp":
                 jmp_idx = int(op_code.op_value)
                 self.__execute_jmp(jmp_idx=jmp_idx)
+                self.__increment_opcode_ptr()
+            elif op_code.op_code == "je":
+                jmp_idx = int(op_code.op_value)
+                self.__execute_conditional_jump(jmp_idx=jmp_idx, on="zero")
                 self.__increment_opcode_ptr()
             elif op_code.op_code == "label":
                 self.__increment_opcode_ptr()
