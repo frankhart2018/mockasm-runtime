@@ -26,6 +26,7 @@ def get_output():
         path = request.form['path']
         
         session['sequence_of_execution'] = None
+        session['sequence_ptr'] = None
 
         source_code = file_utils.read_file(path=path)
 
@@ -45,6 +46,7 @@ def get_output():
             sequence['source_code'] = source_lines[sequence['line_num'] - 1]
 
         session['sequence_of_execution'] = sequence_of_execution
+        session['sequence_ptr'] = 0
 
         return jsonify({
             "icon": "success",
