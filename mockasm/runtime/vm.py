@@ -183,7 +183,7 @@ class VM:
 
         self.__clear_flags()
 
-    def execute(self):
+    def execute(self, yield_execution=False):
         while not self.__is_opcode_list_end():
             op_code = self.__get_opcode_from_pos()
 
@@ -241,3 +241,16 @@ class VM:
                 self.__increment_opcode_ptr()
             elif op_code.op_code == "label":
                 self.__increment_opcode_ptr()
+
+            if yield_execution:
+                executed_opcode = self.__opcodes[self.__current_opcode_ptr - 1]
+
+                yield {
+                    "line_num": executed_opcode.line_num,
+                    "flags": self.__flags,
+                    "registers": self.__registers,
+                    "memory": self.__memory,
+                }
+
+        if yield_execution:
+            yield self.__registers["rax"]

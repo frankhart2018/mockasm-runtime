@@ -45,5 +45,18 @@ setup(
         "Programming Language :: Python :: 3.6",
     ],
     packages=[package for package in find_packages()],
-    entry_points={"console_scripts": ["mockasm = mockasm.mockasm:run"]},
+    package_data={
+        "mockasm": [
+            "static/css/styles.css",
+            "static/js/main.js",
+            "static/js/jquery.min.js",
+            "static/js/sweetalert.min.js",
+            "templates/index.html",
+        ]
+    },
+    entry_points={"console_scripts": [
+        "mockasm = mockasm.mockasm:run",
+        "asmdebug = mockasm.app.run_app:run"
+    ]},
+    install_requires=["flask"],
 )
