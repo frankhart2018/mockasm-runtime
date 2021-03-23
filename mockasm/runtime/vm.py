@@ -8,6 +8,13 @@ class VM:
 
         self.__clear_registers()
 
+    def __clear_flags(self):
+        self.__flags = {
+            "zero": 0,
+            "negative": 0,
+            "positive": 0,
+        }
+
     def __clear_registers(self):
         self.__registers = {
             "rax": None,
@@ -15,14 +22,9 @@ class VM:
             "al": None,
         }
 
+        self.__clear_flags()
+
         self.__stack = []
-
-        self.__flags = {
-            "zero": 0,
-            "negative": 0,
-            "positive": 0,
-        }
-
         self.__memory = {}
 
     def __increment_opcode_ptr(self):
@@ -148,24 +150,17 @@ class VM:
             if zero_flag_val == 1:
                 self.__registers[register] = 1
             elif zero_flag_val == 0:
-                self.__registers[register] = 0
-
-            self.__flags["zero"] = 0 
+                self.__registers[register] = 0 
         elif operator == "setne":
             if zero_flag_val == 1:
                 self.__registers[register] = 0
             elif zero_flag_val == 0:
                 self.__registers[register] = 1
-
-            self.__flags["zero"] = 0
         elif operator == "setl":
             if negative_flag_val == 1 and positive_flag_val == 0:
                 self.__registers[register] = 1
             else:
                 self.__registers[register] = 0
-
-            self.__flags["negative"] = 0
-            self.__flags["positive"] = 0
         elif operator == "setle":
             if negative_flag_val == 1 and positive_flag_val == 0:
                 self.__registers[register] = 1
@@ -174,9 +169,7 @@ class VM:
             else:
                 self.__registers[register] = 0
 
-            self.__flags["negative"] = 0
-            self.__flags["positive"] = 0
-            self.__flags["zero"] = 0
+        self.__clear_flags()
 
     def __execute_lea(self, address, register):
         self.__registers[register] = "_" + address
@@ -187,6 +180,8 @@ class VM:
     def __execute_conditional_jump(self, jmp_idx, on):
         if self.__flags[on]:
             self.__current_opcode_ptr = jmp_idx
+
+        self.__clear_flags()
 
     def execute(self):
         while not self.__is_opcode_list_end():
