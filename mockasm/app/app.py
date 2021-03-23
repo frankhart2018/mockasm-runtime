@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, session
 
 from ..lexer import lexer
 from ..parser import parser
@@ -25,6 +25,8 @@ def get_output():
     if request.method == "POST":
         path = request.form['path']
         
+        session['sequence_of_execution'] = None
+
         source_code = file_utils.read_file(path=path)
 
         lexer_obj = lexer.Lexer(source_code=source_code)
@@ -34,12 +36,21 @@ def get_output():
         opcodes = parser_obj.parse()
 
         vm_obj = vm.VM(opcodes=opcodes)
-        sequence_of_execution = vm_obj.execute(yield_execution=True)
-        output = list(sequence_of_execution)[-1]
+        sequence_of_execution = list(vm_obj.execute(yield_execution=True))
+        output = sequence_of_execution[-1]
+
+        sequence_of_execution = sequence_of_execution[:-1]
+        source_lines = source_code.split("\n")
+        for sequence in sequence_of_execution:
+            sequence['source_code'] = source_lines[sequence['line_num'] - 1]
+
+        session['sequence_of_execution'] = sequence_of_execution
 
         return jsonify({
             "icon": "success",
             "title": "Success",
             "text": "Code executed successfully!",
-            "output": output
+            "output": output,
+            "sequence_of_execution": sequence_of_execution[0],
+            "source_code": source_code,
         })

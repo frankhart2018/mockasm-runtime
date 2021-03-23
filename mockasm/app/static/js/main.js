@@ -1,6 +1,28 @@
 $(document).ready(function() {
+
+    $("#intermediate-area").css("display", "none");
+
+    const capitalize = (s) => {
+        if (typeof s !== 'string') 
+            return ''
+        return s.charAt(0).toUpperCase() + s.slice(1)
+    }
+
+    function generate_table(json_object, category, th) {
+        var table = "<strong>" + capitalize(category) + ":</strong><br><br><table><thead>";
+        table += "<tr><th>" + th + "</th><th>Value</th></thead><tbody>";
+        category_object = json_object[category];  
+        for(var key in category_object) {
+            table += "<tr><td>" + key + "</td><td>" + category_object[key] + "</td></tr>";
+        }
+        table += "</pre>";
+
+        return table;
+    }
     
     $("#run").click(function() {
+        $("#intermediate-area").css("display", "none");
+
         var path = $("#path").val();
 
         if(path) {
@@ -15,8 +37,21 @@ $(document).ready(function() {
                         title: result.title,
                         text: result.text,
                     });
-                    console.log(result.output);
-                    $("#output").html(result.output);
+                    
+                    $("#intermediate-area").css("display", "block");
+
+                    $("#output").html("<strong>Output:</strong> " + result.output);
+
+                    $("#source_code").html("<strong>Source Code:</strong><br><pre>" + result.source_code + "</pre>");
+                    
+                    var registers = generate_table(result.sequence_of_execution, "registers", "Register")
+                    $("#registers").html(registers);
+
+                    var flags = generate_table(result.sequence_of_execution, "flags", "Flag");
+                    $("#flags").html(flags);
+
+                    var memory = generate_table(result.sequence_of_execution, "memory", "Memory location");
+                    $("#memory").html(memory);
                 }
             });
         } else {

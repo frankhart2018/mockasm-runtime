@@ -7,16 +7,23 @@
     </head>
 
     <body>
-        <div>
-            <h1 id="output"></h1>
+        <div id="input-area">
             <p>
                 <input type="text" id="path" class="inp" placeholder="Path to ASM code">
             </p>
             <p>
                 <input type="button" id="run" class="button" value="Run">
             </p>
+
+            <p id="output"></p>
+            <p id="source_code"></p>
         </div>
 
+        <div id="intermediate-area">
+            <p id="registers"></p>
+            <p id="flags"></p>
+            <p id="memory"></p>
+        </div>
         <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/sweetalert.min.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
