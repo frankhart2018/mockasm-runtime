@@ -131,7 +131,6 @@ class Lexer:
         while not self.__is_source_end():
             char = self.__get_char_from_pos()
             if char == '\n':
-                self.__increment_line_num()
                 break
 
             self.__increment_source_ptr()
