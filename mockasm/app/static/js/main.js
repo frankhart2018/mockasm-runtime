@@ -19,6 +19,19 @@ $(document).ready(function() {
 
         return table;
     }
+
+    function generate_sequence_tables(json_object) {
+        $("#intermediate-area").css("display", "block");
+
+        var registers = generate_table(json_object, "registers", "Register")
+        $("#registers").html(registers);
+
+        var flags = generate_table(json_object, "flags", "Flag");
+        $("#flags").html(flags);
+
+        var memory = generate_table(json_object, "memory", "Memory location");
+        $("#memory").html(memory);
+    }
     
     $("#run").click(function() {
         $("#intermediate-area").css("display", "none");
@@ -37,21 +50,10 @@ $(document).ready(function() {
                         title: result.title,
                         text: result.text,
                     });
-                    
-                    $("#intermediate-area").css("display", "block");
 
                     $("#output").html("<strong>Output:</strong> " + result.output);
-
                     $("#source_code").html("<strong>Source Code:</strong><br><pre>" + result.source_code + "</pre>");
-                    
-                    var registers = generate_table(result.sequence_of_execution, "registers", "Register")
-                    $("#registers").html(registers);
-
-                    var flags = generate_table(result.sequence_of_execution, "flags", "Flag");
-                    $("#flags").html(flags);
-
-                    var memory = generate_table(result.sequence_of_execution, "memory", "Memory location");
-                    $("#memory").html(memory);
+                    generate_sequence_tables(result.sequence_of_execution);
                 }
             });
         } else {
