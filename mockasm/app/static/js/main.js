@@ -1,5 +1,6 @@
 $(document).ready(function() {
 
+    $("#next").css("display", "none");
     $("#intermediate-area").css("display", "none");
 
     const capitalize = (s) => {
@@ -50,6 +51,7 @@ $(document).ready(function() {
     }
     
     $("#run").click(function() {
+        $("#next").css("display", "none");
         $("#intermediate-area").css("display", "none");
 
         var path = $("#path").val();
