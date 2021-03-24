@@ -50,4 +50,4 @@ def run():
         print("Output")
         print("*" * 50)
 
-    vm_obj.execute()
+    _ = list(vm_obj.execute())

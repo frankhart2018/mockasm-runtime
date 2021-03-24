@@ -6,6 +6,9 @@
     font-weight: bold;
     padding: 10px 20px;
     outline: 0;
+    float: left;
+    margin-bottom: 10px;
+    margin-left: 10px;
 }
 
 .button:hover {
@@ -23,6 +26,10 @@
 
 #source_code {
     font-size: 120%;
+}
+
+#output {
+    clear: both;
 }
 
 #input-area {

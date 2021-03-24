@@ -22,6 +22,7 @@ $(document).ready(function() {
     }
 
     function generate_sequence_tables(json_object) {
+        $("#next").css("display", "block");
         $("#intermediate-area").css("display", "block");
 
         var registers = generate_table(json_object, "registers", "Register")
@@ -82,6 +83,28 @@ $(document).ready(function() {
                 text: "ASM code file path is required!",
             });
         }
+    });
+
+    $("#next").click(function() {
+        $.ajax({
+            url: "/next-output",
+            type: "post",
+            dataType: "json",
+            success: function(result) {
+                if(result.icon == "error") {
+                    Swal.fire({
+                        icon: result.icon,
+                        title: result.title,
+                        text: result.text,
+                    });
+                } else {
+                    console.log(result.current_sequence);
+                    highlighted_source_code = highlight_source_lines(result.source_code, result.current_sequence.line_num);
+                    $("#source_code").html(highlighted_source_code);
+                    generate_sequence_tables(result.current_sequence);
+                }
+            }
+        });
     });
 
 });

@@ -254,3 +254,5 @@ class VM:
 
         if yield_execution:
             yield self.__registers["rax"]
+        else:
+            return self.__registers["rax"]
