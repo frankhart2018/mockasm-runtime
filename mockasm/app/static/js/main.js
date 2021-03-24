@@ -32,6 +32,22 @@ $(document).ready(function() {
         var memory = generate_table(json_object, "memory", "Memory location");
         $("#memory").html(memory);
     }
+
+    function highlight_source_lines(source_code, line_num) {
+        highlighted_source_code = "<strong>Source Code:</strong><br><pre>";
+
+        source_lines = source_code.split("\n");
+        source_lines.forEach(function (source_line, index) {
+            if(index == line_num - 1)
+                highlighted_source_code += "<span style='background: yellow;'>" + source_line + "</span><br>";
+            else
+                highlighted_source_code += source_line + "<br>";
+        });
+
+        highlighted_source_code += "</pre>";
+
+        return highlighted_source_code
+    }
     
     $("#run").click(function() {
         $("#intermediate-area").css("display", "none");
@@ -52,7 +68,8 @@ $(document).ready(function() {
                     });
 
                     $("#output").html("<strong>Output:</strong> " + result.output);
-                    $("#source_code").html("<strong>Source Code:</strong><br><pre>" + result.source_code + "</pre>");
+                    highlighted_source_code = highlight_source_lines(result.source_code, result.sequence_of_execution.line_num);
+                    $("#source_code").html(highlighted_source_code);
                     generate_sequence_tables(result.sequence_of_execution);
                 }
             });
