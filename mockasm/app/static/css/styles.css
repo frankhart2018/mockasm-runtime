@@ -37,6 +37,11 @@
     width: 50%;
 }
 
+#source_code {
+    height: 75vh;
+    overflow: scroll;
+}
+
 #intermediate-area {
     float: left;
     width: 50%;

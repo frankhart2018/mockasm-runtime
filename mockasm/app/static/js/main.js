@@ -42,16 +42,20 @@ $(document).ready(function() {
         highlighted_source_code = "<strong>Source Code:</strong><br><pre>";
 
         source_lines = source_code.split("\n");
+        var focus_idx = -1;
         source_lines.forEach(function (source_line, index) {
-            if(index == line_num - 1)
-                highlighted_source_code += "<span style='background: yellow;'>" + source_line + "</span><br>";
-            else
-                highlighted_source_code += source_line + "<br>";
+            if(index == line_num - 1) {
+                focus_idx = index;
+                highlighted_source_code += "<span style='background: yellow;' id='line_" + index + "'>" + source_line + "</span><br>";
+            }
+            else {
+                highlighted_source_code += "<span id='line_" + index + "'>" + source_line + "</span><br>";
+            }
         });
 
         highlighted_source_code += "</pre>";
 
-        return highlighted_source_code
+        return [highlighted_source_code, focus_idx];
     }
     
     $("#run").click(function() {
@@ -74,8 +78,10 @@ $(document).ready(function() {
                     });
 
                     $("#output").html("<strong>Output:</strong> " + result.output);
-                    highlighted_source_code = highlight_source_lines(result.source_code, result.sequence_of_execution.line_num);
+                    const source_ret_val = highlight_source_lines(result.source_code, result.sequence_of_execution.line_num);
+                    var highlighted_source_code = source_ret_val[0];
                     $("#source_code").html(highlighted_source_code);
+
                     generate_sequence_tables(result.sequence_of_execution);
                 }
             });
@@ -101,9 +107,17 @@ $(document).ready(function() {
                         text: result.text,
                     });
                 } else {
-                    console.log(result.current_sequence);
-                    highlighted_source_code = highlight_source_lines(result.source_code, result.current_sequence.line_num);
+                    const source_ret_val = highlight_source_lines(result.source_code, result.current_sequence.line_num);
+                    var highlighted_source_code = source_ret_val[0];
+                    var focus_idx = source_ret_val[1];
                     $("#source_code").html(highlighted_source_code);
+
+                    document.getElementById("line_" + focus_idx).scrollIntoView({
+                        behaviour: "smooth",
+                        block: "end",
+                        inline: "nearest",
+                    });
+
                     generate_sequence_tables(result.current_sequence);
                 }
             }
