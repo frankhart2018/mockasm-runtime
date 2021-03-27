@@ -46,10 +46,14 @@ $(document).ready(function() {
         source_lines.forEach(function (source_line, index) {
             if(index == line_num - 1) {
                 focus_idx = index;
-                highlighted_source_code += "<span style='background: yellow;' id='line_" + index + "'>" + source_line + "</span><br>";
+                highlighted_source_code += "<span style='background: yellow;' id='line_" + index + "'>" + 
+                                           (parseInt(index) + 1).toString() + ". " + 
+                                           source_line + "</span><br>";
             }
             else {
-                highlighted_source_code += "<span id='line_" + index + "'>" + source_line + "</span><br>";
+                highlighted_source_code += "<span id='line_" + index + "'>" + 
+                                           (parseInt(index) + 1).toString() + ". " + 
+                                           source_line + "</span><br>";
             }
         });
 
