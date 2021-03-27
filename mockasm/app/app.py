@@ -49,7 +49,7 @@ def get_output():
         output = sequence_of_execution[-1]
 
         sequence_of_execution = sequence_of_execution[:-1]
-        print(sequence_of_execution)
+
         source_lines = source_code.split("\n")
         for sequence in sequence_of_execution:
             sequence['source_code'] = source_lines[sequence['line_num'] - 1]
@@ -80,7 +80,7 @@ def next_output():
 
             session['sequence_ptr'] += 1
 
-            if session['sequence_ptr'] >= len(session['source_code'].split("\n")):
+            if session['sequence_ptr'] >= len(session['sequence_of_execution']):
                 session['sequence_ptr'] = 0
 
             return jsonify({

@@ -250,6 +250,7 @@ class VM:
                     "flags": self.__flags,
                     "registers": self.__registers,
                     "memory": self.__memory,
+                    "stack": self.__stack,
                 }
 
         if yield_execution:

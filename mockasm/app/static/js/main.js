@@ -33,6 +33,9 @@ $(document).ready(function() {
 
         var memory = generate_table(json_object, "memory", "Memory location");
         $("#memory").html(memory);
+
+        var stack = generate_table(json_object, "stack", "Stack");
+        $("#stack").html(stack);
     }
 
     function highlight_source_lines(source_code, line_num) {

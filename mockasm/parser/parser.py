@@ -291,7 +291,7 @@ class Parser:
 
             self.__increment_token_ptr()
 
-            current_token = line_num
+            line_num = current_token.line_num
 
         # Will be used at the end of parsing for label idx binding
         self.__label_to_opcode_idx[label] = len(self.__opcodes)

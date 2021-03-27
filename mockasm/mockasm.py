@@ -6,6 +6,8 @@ from .lexer import lexer
 from .parser import parser
 from .runtime import vm
 
+import copy
+import json
 
 def run():
     argparser = argparse.ArgumentParser(description="Mock ASM")
@@ -50,4 +52,12 @@ def run():
         print("Output")
         print("*" * 50)
 
-    _ = list(vm_obj.execute())
+    sequence_of_execution = []
+    for sequence in vm_obj.execute(yield_execution=True):
+        if type(sequence) == dict:
+            sequence_of_execution.append(copy.deepcopy(sequence))
+        else:
+            sequence_of_execution.append(sequence)
+
+    with open("sequence.json", "w") as file:
+        json.dump(sequence_of_execution[:-1], file, indent=4)
