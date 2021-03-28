@@ -104,6 +104,12 @@ class VM:
 
         new_value = 0
         existing_reg_value = self.__registers[register]
+
+        register_is_mem_loc = False
+        if type(existing_reg_value) == str and existing_reg_value.startswith("_"):
+            existing_reg_value = -1 * int(existing_reg_value[1:])
+            register_is_mem_loc = True
+
         if operator == "add":
             new_value = existing_reg_value + value
         elif operator == "sub":
@@ -113,7 +119,7 @@ class VM:
         elif operator == "idiv":
             new_value = existing_reg_value // value
 
-        self.__registers[register] = new_value
+        self.__registers[register] = new_value if not register_is_mem_loc else "_" + str(-1 * new_value)
 
     def __execute_unary_operation(self, register):
         if self.__registers[register] == None:
