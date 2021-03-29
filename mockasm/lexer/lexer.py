@@ -30,6 +30,7 @@ class Lexer:
             "lea",
             "jmp",
             "je",
+            "call",
         ]
 
         self.__registers = [

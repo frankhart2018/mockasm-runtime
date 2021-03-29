@@ -24,4 +24,4 @@ class OpCode:
         return f"OpCode(op_code=\033[91m{self.op_code}\033[m, op_value=\033[91m{self.op_value}\033[m, line_num=\033[91m{self.line_num}\033[m)"
 
     def __eq__(self, other):
-        return self.op_code == other.op_code and self.op_value == other.op_value and self.line_num == other.line_num
+        return self.op_code == other.op_code and self.op_value == other.op_value

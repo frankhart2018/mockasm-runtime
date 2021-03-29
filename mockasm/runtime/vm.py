@@ -1,3 +1,4 @@
+from mockasm.parser import opcode
 from ..utils import error_utils
 
 
@@ -26,6 +27,7 @@ class VM:
 
         self.__stack = []
         self.__memory = {}
+        self.__call_stack = []
 
     def __increment_opcode_ptr(self):
         self.__current_opcode_ptr += 1
@@ -86,13 +88,18 @@ class VM:
             self.__registers[register] = value
 
     def __execute_return_instruction(self):
-        for value in self.__registers.values():
-            if value != None:
-                if type(value) == str:
-                    value = value.replace("_", "")
-                    value = abs(int(value))
-                print(value)
-                break
+        if len(self.__call_stack) == 0:
+            for value in self.__registers.values():
+                if value != None:
+                    if type(value) == str:
+                        value = value.replace("_", "")
+                        value = abs(int(value))
+                    print(value)
+                    break
+            return True
+        else:
+            self.__current_opcode_ptr = self.__call_stack.pop()
+            return False
 
     def __execute_arithmetic_operation(self, value, register, operator):
         if self.__registers[register] == None:
@@ -195,6 +202,21 @@ class VM:
 
         self.__clear_flags()
 
+    def __execute_call(self, label):
+        label_opcode = opcode.OpCode(op_code="label", op_value=label.split(".")[-1], line_num=1)
+        label_opcode_idx = None
+
+        for i, op in enumerate(self.__opcodes):
+            if op == label_opcode:
+                label_opcode_idx = i
+                break
+
+        if label_opcode_idx == None:
+            error_utils.error(msg=f"Label .L.{label} not found, but used in call statement")
+
+        self.__call_stack.append(self.__current_opcode_ptr + 1)
+        self.__current_opcode_ptr = label_opcode_idx
+
     def execute(self, yield_execution=False):
         while not self.__is_opcode_list_end():
             op_code = self.__get_opcode_from_pos()
@@ -204,7 +226,11 @@ class VM:
                 self.__execute_move_instruction(value=value, register=register)
                 self.__increment_opcode_ptr()
             elif op_code.op_code == "ret":
-                self.__execute_return_instruction()
+                is_end = self.__execute_return_instruction()
+                
+                if is_end:
+                    break
+
                 self.__increment_opcode_ptr()
             elif op_code.op_code in ["add", "sub", "imul", "idiv"]:
                 value, register = op_code.op_value.split("---")
@@ -252,6 +278,10 @@ class VM:
                 self.__execute_conditional_jump(jmp_idx=jmp_idx, on="zero")
                 self.__increment_opcode_ptr()
             elif op_code.op_code == "label":
+                self.__increment_opcode_ptr()
+            elif op_code.op_code == "call":
+                label = op_code.op_value
+                self.__execute_call(label=label)
                 self.__increment_opcode_ptr()
 
             if yield_execution:

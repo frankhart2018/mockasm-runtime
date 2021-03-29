@@ -296,7 +296,33 @@ class Parser:
         # Will be used at the end of parsing for label idx binding
         self.__label_to_opcode_idx[label] = len(self.__opcodes)
 
-        return opcode.OpCode(op_code="label", op_value="", line_num=line_num)
+        return opcode.OpCode(op_code="label", op_value=label, line_num=line_num)
+
+    def __parse_call(self):
+        # call <label>
+        expected_token_sequence = ["call", "label"]
+
+        label = ""
+        line_num = 0
+        for expected_token_type in expected_token_sequence:
+            current_token = self.__get_token_from_pos()
+            token_utils.match_tokens(
+                current_token_type=current_token.token_type,
+                expected_token_types=[expected_token_type],
+                error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
+            )
+
+            if current_token.token_type == "label":
+                label = current_token.lexeme
+
+            self.__increment_token_ptr()
+
+            line_num = current_token.line_num
+
+        # Will be used at the end of parsing for label idx binding
+        self.__label_to_opcode_idx[label] = len(self.__opcodes)
+
+        return opcode.OpCode(op_code="call", op_value=label, line_num=line_num)
 
     def parse(self):
         while not self.__is_token_list_end():
@@ -345,6 +371,9 @@ class Parser:
                 self.__append_opcode(opcode=current_opcode)
             elif current_token.token_type == "label":
                 current_opcode = self.__parse_label()
+                self.__append_opcode(opcode=current_opcode)
+            elif current_token.token_type == "call":
+                current_opcode = self.__parse_call()
                 self.__append_opcode(opcode=current_opcode)
             else:
                 self.__increment_token_ptr()
