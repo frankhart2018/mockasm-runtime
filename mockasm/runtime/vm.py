@@ -88,6 +88,9 @@ class VM:
     def __execute_return_instruction(self):
         for value in self.__registers.values():
             if value != None:
+                if type(value) == str:
+                    value = value.replace("_", "")
+                    value = abs(int(value))
                 print(value)
                 break
 
@@ -104,6 +107,9 @@ class VM:
 
         new_value = 0
         existing_reg_value = self.__registers[register]
+
+        if type(value) == str and value.startswith("_"):
+            value = -1 * int(value[1:])
 
         register_is_mem_loc = False
         if type(existing_reg_value) == str and existing_reg_value.startswith("_"):
