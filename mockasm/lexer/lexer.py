@@ -73,7 +73,7 @@ class Lexer:
         lexeme = ""
         while not self.__is_source_end():
             char = self.__get_char_from_pos()
-            if not char.isalpha():
+            if not char.isalnum():
                 break
 
             lexeme += char
