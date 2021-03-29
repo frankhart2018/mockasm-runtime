@@ -20,7 +20,12 @@ class VM:
         self.__registers = {
             "rax": None,
             "rdi": None,
+            "rsi": None,
+            "rdx": None,
+            "rcx": None,
             "al": None,
+            "r8": None,
+            "r9": None,
         }
 
         self.__clear_flags()
