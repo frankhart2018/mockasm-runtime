@@ -225,7 +225,7 @@ class VM:
         if label_opcode_idx == None:
             error_utils.error(msg=f"Label .L.{label} not found, but used in call statement")
 
-        self.__call_stack.append(self.__current_opcode_ptr + 1)
+        self.__call_stack.append(self.__current_opcode_ptr)
         self.__current_opcode_ptr = label_opcode_idx
 
     def execute(self, yield_execution=False):
