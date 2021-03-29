@@ -37,9 +37,11 @@ class Parser:
             self.__opcodes[opcode_idx].op_value = self.__label_to_opcode_idx[label]
 
     def __parse_mov(self, operator):
-        # operator $<number>, <register>
+        # operator src, dst
         # operator -> mov/movzb
-        expected_token_sequence = [operator, "number,register,location_at", "comma", "register,location_at"]
+        # src -> $<number>|<register>|(<register>)|$_<number>
+        # dst -> <register>|(<register>)|$_<number>
+        expected_token_sequence = [operator, "number,register,location_at,address", "comma", "register,location_at,address"]
 
         value = ""
         register = ""
@@ -55,10 +57,10 @@ class Parser:
                 error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
             )
 
-            if value == "" and current_token.token_type in ["number", "register", "location_at"]:
-                value = current_token.lexeme if current_token.token_type != "location_at" else "_" + current_token.lexeme
-            elif current_token.token_type in ["number", "register", "location_at"]:
-                register = current_token.lexeme if current_token.token_type != "location_at" else "_" + current_token.lexeme
+            if value == "" and current_token.token_type in ["number", "register", "location_at", "address"]:
+                value = current_token.lexeme if current_token.token_type not in ["location_at", "address"] else "_" + current_token.lexeme
+            elif current_token.token_type in ["number", "register", "location_at", "address"]:
+                register = current_token.lexeme if current_token.token_type not in ["location_at", "address"] else "_" + current_token.lexeme
 
             self.__increment_token_ptr()
 

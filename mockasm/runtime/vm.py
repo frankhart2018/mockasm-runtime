@@ -49,7 +49,10 @@ class VM:
             value = int(value)
         else:
             if value.startswith("_"):
-                value = self.__read_from_memory(mem_location=self.__registers[value[1:]])
+                if(value[1:].isdigit()):
+                    value = self.__read_from_memory(mem_location=value)
+                else:
+                    value = self.__read_from_memory(mem_location=self.__registers[value[1:]])
             else:
                 value = self.__registers[value]
 
@@ -83,7 +86,10 @@ class VM:
         )
         
         if register.startswith("_"):
-            self.__store_in_memory(mem_location=self.__registers[register[1:]], value=value)
+            if(register[1:].isdigit()):
+                self.__store_in_memory(mem_location=register, value=value)
+            else:
+                self.__store_in_memory(mem_location=self.__registers[register[1:]], value=value)
         else:
             self.__registers[register] = value
 
