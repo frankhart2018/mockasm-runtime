@@ -26,6 +26,8 @@ class VM:
             "al": None,
             "r8": None,
             "r9": None,
+            "rsp": 0,
+            "rbp": 0,
         }
 
         self.__clear_flags()
@@ -74,14 +76,24 @@ class VM:
 
         self.__stack.append(value)
 
+        self.__registers["rsp"] += 8
+
     def __execute_pop_from_stack(self, register):
         value = self.__stack.pop()
         self.__registers[register] = int(value) if type(value) != int and not value.startswith("_") else value
 
+        self.__registers["rsp"] -= 8
+
+    def __compute_true_mem_loc(self, mem_location):
+        mem_location = -1 * int(mem_location[1:]) + self.__registers["rbp"]
+        return mem_location
+
     def __store_in_memory(self, mem_location, value):
+        mem_location = self.__compute_true_mem_loc(mem_location)
         self.__memory[mem_location] = value
 
     def __read_from_memory(self, mem_location):
+        mem_location = self.__compute_true_mem_loc(mem_location)
         return self.__memory.get(mem_location, None)
 
     def __execute_move_instruction(self, value, register):
