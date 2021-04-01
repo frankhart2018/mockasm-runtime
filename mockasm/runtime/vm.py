@@ -49,6 +49,13 @@ class VM:
             else self.__opcodes[pos]
         )
 
+    def __find_opcode_idx(self, op):
+        for i, opcode in enumerate(self.__opcodes):
+            if op == opcode:
+                return i
+
+        return None
+
     def __parse_value(self, value, error_msg):
         old_value = value
         
@@ -229,10 +236,7 @@ class VM:
         label_opcode = opcode.OpCode(op_code="label", op_value=label.split(".")[-1], line_num=1)
         label_opcode_idx = None
 
-        for i, op in enumerate(self.__opcodes):
-            if op == label_opcode:
-                label_opcode_idx = i
-                break
+        label_opcode_idx = self.__find_opcode_idx(op=label_opcode)
 
         if label_opcode_idx == None:
             error_utils.error(msg=f"Label .L.{label} not found, but used in call statement")
@@ -241,6 +245,12 @@ class VM:
         self.__current_opcode_ptr = label_opcode_idx
 
     def execute(self, yield_execution=False):
+        main_opcode = opcode.OpCode(op_code="label", op_value="main", line_num=1)
+        main_opcode_idx = self.__find_opcode_idx(op=main_opcode)
+
+        if main_opcode_idx != None:
+            self.__current_opcode_ptr = main_opcode_idx
+
         while not self.__is_opcode_list_end():
             op_code = self.__get_opcode_from_pos()
 
