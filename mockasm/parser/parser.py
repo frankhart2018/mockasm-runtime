@@ -240,7 +240,7 @@ class Parser:
             )
 
             if current_token.token_type in ["address", "global"]:
-                address = current_token.lexeme
+                address = "_" + current_token.lexeme if current_token.token_type == "address" else current_token.lexeme
             elif expected_token_type == "register":
                 register = current_token.lexeme
 

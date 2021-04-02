@@ -95,8 +95,8 @@ class VM:
         if type(mem_location) == int:
             return mem_location
 
-        mem_location = -1 * int(mem_location[1:]) + self.__registers["rbp"] if mem_location[1:].isdigit() else mem_location
-        return mem_location
+        mem_location = -1 * int(mem_location[1:]) + self.__registers["rbp"] if mem_location[1:].isdigit() and mem_location[0] == "_" else mem_location
+        return int(mem_location) if type(mem_location) == str and mem_location.isdigit() else mem_location
 
     def __store_in_memory(self, mem_location, value):
         mem_location = self.__compute_true_mem_loc(mem_location)
@@ -227,7 +227,7 @@ class VM:
         self.__clear_flags()
 
     def __execute_lea(self, address, register):
-        self.__registers[register] = "_" + address if address[1:].isdigit() else address
+        self.__registers[register] = self.__compute_true_mem_loc(address)
 
     def __execute_jmp(self, jmp_idx):
         self.__current_opcode_ptr = jmp_idx
