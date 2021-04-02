@@ -45,6 +45,12 @@ class Lexer:
             "r9",
             "rsp",
             "rbp",
+            "dil",
+            "sil",
+            "dl",
+            "cl",
+            "r8b",
+            "r9b",
         ]
 
     def __get_char_from_pos(self, pos=None):
@@ -87,7 +93,7 @@ class Lexer:
                 lexeme=lexeme, token_type=lexeme, line_num=self.__line_num
             )
         elif self.__is_register(lexeme=lexeme):
-            r8_to_r64_mapping = {"al": "rax"}
+            r8_to_r64_mapping = {"al": "rax", "dil": "rdi", "sil": "rsi", "dl": "rdx"}
             lexeme = r8_to_r64_mapping[lexeme] if lexeme in r8_to_r64_mapping.keys() else lexeme
 
             return token.Token(
