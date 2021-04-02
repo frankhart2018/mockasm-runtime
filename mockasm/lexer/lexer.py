@@ -118,8 +118,11 @@ class Lexer:
         error_utils.error(msg="Missing closing parantheses in location_at register")
 
     def __identify_label(self):
-        self.__increment_source_ptr()
-        self.__increment_source_ptr()
+        # Skip L.
+        num_chars_to_skip = 2
+
+        for _ in range(num_chars_to_skip):
+            self.__increment_source_ptr()
 
         lexeme = ""
 
@@ -142,6 +145,27 @@ class Lexer:
                 break
 
             self.__increment_source_ptr()
+
+    def __identify_global(self):
+        # Skip global.
+        num_chars_to_skip = 7
+
+        for _ in range(num_chars_to_skip):
+            self.__increment_source_ptr()
+
+        lexeme = ""
+
+        while not self.__is_source_end():
+            char = self.__get_char_from_pos()
+            if not char.isalpha() and char != '_' and not char.isdigit():
+                break
+
+            lexeme += char
+            self.__increment_source_ptr()
+
+        return token.Token(
+            lexeme="g_" + lexeme, token_type="global", line_num=self.__line_num
+        )
 
     def lexical_analyze(self):
         while not self.__is_source_end():
@@ -186,6 +210,9 @@ class Lexer:
                 current_char = self.__get_char_from_pos()
                 if current_char == "L":
                     current_token = self.__identify_label()
+                    self.__append_token(token=current_token)
+                elif current_char == "g":
+                    current_token = self.__identify_global()
                     self.__append_token(token=current_token)
                 else:
                     self.__increment_source_ptr()

@@ -87,12 +87,15 @@ class VM:
 
     def __execute_pop_from_stack(self, register):
         value = self.__stack.pop()
-        self.__registers[register] = int(value) if type(value) != int and not value.startswith("_") else value
+        self.__registers[register] = int(value) if type(value) != int and not value.startswith("_") and not value.startswith("g_") else value
 
         self.__registers["rsp"] -= 8
 
     def __compute_true_mem_loc(self, mem_location):
-        mem_location = -1 * int(mem_location[1:]) + self.__registers["rbp"]
+        if type(mem_location) == int:
+            return mem_location
+
+        mem_location = -1 * int(mem_location[1:]) + self.__registers["rbp"] if mem_location[1:].isdigit() else mem_location
         return mem_location
 
     def __store_in_memory(self, mem_location, value):
@@ -144,6 +147,9 @@ class VM:
 
         new_value = 0
         existing_reg_value = self.__registers[register]
+
+        if type(existing_reg_value) == str and existing_reg_value.startswith("g_"):
+            existing_reg_value = self.__read_from_memory(mem_location=existing_reg_value)
 
         if type(value) == str and value.startswith("_"):
             value = -1 * int(value[1:])
@@ -221,7 +227,7 @@ class VM:
         self.__clear_flags()
 
     def __execute_lea(self, address, register):
-        self.__registers[register] = "_" + address
+        self.__registers[register] = "_" + address if address[1:].isdigit() else address
 
     def __execute_jmp(self, jmp_idx):
         self.__current_opcode_ptr = jmp_idx
@@ -244,7 +250,20 @@ class VM:
         self.__call_stack.append(self.__current_opcode_ptr)
         self.__current_opcode_ptr = label_opcode_idx
 
+    def __execute_global_var(self, global_var_name):
+        self.__store_in_memory(mem_location=global_var_name, value=0)
+
     def execute(self, yield_execution=False):
+        while not self.__is_opcode_list_end():
+            op_code = self.__get_opcode_from_pos()
+
+            if op_code.op_code == "global":
+                global_var_name = op_code.op_value
+                self.__execute_global_var(global_var_name=global_var_name)
+                self.__increment_opcode_ptr()
+            else:
+                break
+
         main_opcode = opcode.OpCode(op_code="label", op_value="main", line_num=1)
         main_opcode_idx = self.__find_opcode_idx(op=main_opcode)
 

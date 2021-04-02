@@ -223,20 +223,23 @@ class Parser:
 
     def __parse_lea(self):
         # lea <address>, <register>
-        expected_token_sequence = ["lea", "address", "comma", "register"]
+        expected_token_sequence = ["lea", "address,global", "comma", "register"]
 
         address = ""
         register = ""
         line_num = 0
         for expected_token_type in expected_token_sequence:
+            if "," in expected_token_type:
+                expected_token_type = expected_token_type.split(",")
+
             current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
                 current_token_type=current_token.token_type,
-                expected_token_types=[expected_token_type],
+                expected_token_types=[expected_token_type] if type(expected_token_type) == str else expected_token_type,
                 error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
             )
 
-            if current_token.token_type == "address":
+            if current_token.token_type in ["address", "global"]:
                 address = current_token.lexeme
             elif expected_token_type == "register":
                 register = current_token.lexeme
@@ -326,6 +329,32 @@ class Parser:
 
         return opcode.OpCode(op_code="call", op_value=label, line_num=line_num)
 
+    def __parse_global_var(self):
+        # .global.<var-name>
+        expected_token_sequence = ["global"]
+
+        label = ""
+        line_num = 0
+        for expected_token_type in expected_token_sequence:
+            current_token = self.__get_token_from_pos()
+            token_utils.match_tokens(
+                current_token_type=current_token.token_type,
+                expected_token_types=[expected_token_type],
+                error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
+            )
+
+            if current_token.token_type == "global":
+                label = current_token.lexeme
+
+            self.__increment_token_ptr()
+
+            line_num = current_token.line_num
+
+        # Will be used at the end of parsing for label idx binding
+        self.__label_to_opcode_idx[label] = len(self.__opcodes)
+
+        return opcode.OpCode(op_code="global", op_value=label, line_num=line_num)
+
     def parse(self):
         while not self.__is_token_list_end():
             current_token = self.__get_token_from_pos()
@@ -376,6 +405,9 @@ class Parser:
                 self.__append_opcode(opcode=current_opcode)
             elif current_token.token_type == "call":
                 current_opcode = self.__parse_call()
+                self.__append_opcode(opcode=current_opcode)
+            elif current_token.token_type == "global":
+                current_opcode = self.__parse_global_var()
                 self.__append_opcode(opcode=current_opcode)
             else:
                 self.__increment_token_ptr()
