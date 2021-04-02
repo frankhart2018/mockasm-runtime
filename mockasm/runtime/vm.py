@@ -270,14 +270,14 @@ class VM:
                 self.__execute_global_var(global_var_name=global_var_name)
                 self.__increment_opcode_ptr()
             elif op_code.op_code == "byte":
-                current_global_loc = current_global_var
                 value = int(op_code.op_value)
+                value = 256 - abs(value) if value < 0 else value
                 self.__store_in_memory(mem_location=current_global_var + str(current_global_val_idx), value=value)
                 current_global_val_idx += 1
                 self.__increment_opcode_ptr()
             else:
                 break
-            
+
         main_opcode = opcode.OpCode(op_code="label", op_value="main", line_num=1)
         main_opcode_idx = self.__find_opcode_idx(op=main_opcode)
 

@@ -103,7 +103,7 @@ class Lexer:
 
         error_utils.error(msg=f"{lexeme} is not a keyword or a register")
 
-    def __identify_number(self):
+    def __identify_number(self, is_negative=False):
         lexeme = ""
         while not self.__is_source_end():
             char = self.__get_char_from_pos()
@@ -112,6 +112,8 @@ class Lexer:
 
             lexeme += char
             self.__increment_source_ptr()
+
+        lexeme = "-" + lexeme if is_negative else lexeme
 
         return token.Token(lexeme=lexeme, token_type="number", line_num=self.__line_num)
 
@@ -237,6 +239,14 @@ class Lexer:
             elif char.isdigit():
                 current_token = self.__identify_number()
                 self.__append_token(token=current_token)
+            elif char == '-':
+                self.__increment_source_ptr()
+                current_char = self.__get_char_from_pos()
+                if current_char.isdigit():
+                    current_token = self.__identify_number(is_negative=True)
+                    self.__append_token(token=current_token)
+                else:
+                    continue
             else:
                 self.__increment_source_ptr()
 
