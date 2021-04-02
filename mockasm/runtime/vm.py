@@ -148,11 +148,15 @@ class VM:
         new_value = 0
         existing_reg_value = self.__registers[register]
 
-        if type(existing_reg_value) == str and existing_reg_value.startswith("g_"):
+        if type(existing_reg_value) == str and existing_reg_value.startswith("g_") and not existing_reg_value.startswith("g__"):
             existing_reg_value = self.__read_from_memory(mem_location=existing_reg_value)
 
         if type(value) == str and value.startswith("_"):
             value = -1 * int(value[1:])
+
+        is_global_str_literal = True if type(existing_reg_value) == str and existing_reg_value.startswith("g__") else False
+        if is_global_str_literal:
+            value = str(value)
 
         register_is_mem_loc = False
         if type(existing_reg_value) == str and existing_reg_value.startswith("_"):
@@ -254,16 +258,26 @@ class VM:
         self.__store_in_memory(mem_location=global_var_name, value=0)
 
     def execute(self, yield_execution=False):
+        current_global_var = None
+        current_global_val_idx = 0
         while not self.__is_opcode_list_end():
             op_code = self.__get_opcode_from_pos()
 
             if op_code.op_code == "global":
                 global_var_name = op_code.op_value
+                current_global_var = global_var_name
+                current_global_val_idx = 0
                 self.__execute_global_var(global_var_name=global_var_name)
+                self.__increment_opcode_ptr()
+            elif op_code.op_code == "byte":
+                current_global_loc = current_global_var
+                value = int(op_code.op_value)
+                self.__store_in_memory(mem_location=current_global_var + str(current_global_val_idx), value=value)
+                current_global_val_idx += 1
                 self.__increment_opcode_ptr()
             else:
                 break
-
+            
         main_opcode = opcode.OpCode(op_code="label", op_value="main", line_num=1)
         main_opcode_idx = self.__find_opcode_idx(op=main_opcode)
 

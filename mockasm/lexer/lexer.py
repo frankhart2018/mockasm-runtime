@@ -32,6 +32,7 @@ class Lexer:
             "jmp",
             "je",
             "call",
+            "byte",
         ]
 
         self.__registers = [
@@ -233,6 +234,9 @@ class Lexer:
                 self.__increment_source_ptr()
             elif char == '#':
                 self.__skip_comments()
+            elif char.isdigit():
+                current_token = self.__identify_number()
+                self.__append_token(token=current_token)
             else:
                 self.__increment_source_ptr()
 
