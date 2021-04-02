@@ -273,7 +273,7 @@ class VM:
         while not self.__is_opcode_list_end():
             op_code = self.__get_opcode_from_pos()
 
-            if op_code.op_code in ["mov", "movzb"]:
+            if op_code.op_code in ["mov", "movzb", "movsbq"]:
                 value, register = op_code.op_value.split("---")
                 self.__execute_move_instruction(value=value, register=register)
                 self.__increment_opcode_ptr()
