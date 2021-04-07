@@ -18,6 +18,9 @@ def run():
     argparser.add_argument(
         "--opcodes", action="store_true", default=False, help="Show opcodes"
     )
+    argparser.add_argument(
+        "--exec_opcodes", action="store_true", default=False, help="Show executed opcodes"
+    )
     args = argparser.parse_args()
 
     source_code = file_utils.read_file(path=args.file_path)
@@ -52,4 +55,4 @@ def run():
         print("Output")
         print("*" * 50)
 
-    _ = list(vm_obj.execute())
+    _ = list(vm_obj.execute(show_exec_opcodes=args.exec_opcodes))

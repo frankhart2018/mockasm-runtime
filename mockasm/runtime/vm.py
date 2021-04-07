@@ -98,15 +98,30 @@ class VM:
         mem_location = -1 * int(mem_location[1:]) + self.__registers["rbp"] if mem_location[1:].isdigit() and mem_location[0] == "_" else mem_location
         return int(mem_location) if type(mem_location) == str and mem_location.isdigit() else mem_location
 
-    def __store_in_memory(self, mem_location, value):
+    def __store_in_memory(self, mem_location, value, is_8bit_reg=False):
         mem_location = self.__compute_true_mem_loc(mem_location)
-        self.__memory[mem_location] = value
+
+        if type(value) == int and type(mem_location) == int and value > 0 and not is_8bit_reg:
+            value = bin(value)[2:]
+            value = '0' * (32 - len(value)) + value
+            value = [value[i*8:(i+1)*8] for i in range(4)]
+            value = [int(binary, 2) for binary in value]
+            value = value[::-1]
+            for i in range(4):
+                self.__memory[mem_location+i] = value[i]
+        else:
+            self.__memory[mem_location] = value
 
     def __read_from_memory(self, mem_location):
         mem_location = self.__compute_true_mem_loc(mem_location)
         return self.__memory.get(mem_location, None)
 
     def __execute_move_instruction(self, value, register):
+        is_8bit_reg = False
+        if type(value) == str and not value.isdigit() and value != "r8" and (value.endswith("8") or value == "al"):
+            value = value[:-1]
+            is_8bit_reg = True
+
         value = self.__parse_value(
             value=value,
             error_msg="Register '{}' has not been set, you cannot move it to '" + register + "'"
@@ -114,10 +129,12 @@ class VM:
         
         if register.startswith("_"):
             if(register[1:].isdigit()):
-                self.__store_in_memory(mem_location=register, value=value)
+                self.__store_in_memory(mem_location=register, value=value, is_8bit_reg=is_8bit_reg)
             else:
-                self.__store_in_memory(mem_location=self.__registers[register[1:]], value=value)
+                self.__store_in_memory(mem_location=self.__registers[register[1:]], value=value, is_8bit_reg=is_8bit_reg)
         else:
+            if self.__get_opcode_from_pos().op_code == "movsbq" and value > 256:
+                value =  int(bin(value)[-8:], 2)
             self.__registers[register] = value
 
     def __execute_return_instruction(self):
@@ -205,6 +222,8 @@ class VM:
         negative_flag_val = self.__flags["negative"]
         positive_flag_val = self.__flags["positive"]
 
+        register = register[:-1] if type(register) == str and register.endswith("8") else register
+
         if operator == "sete":
             if zero_flag_val == 1:
                 self.__registers[register] = 1
@@ -257,11 +276,14 @@ class VM:
     def __execute_global_var(self, global_var_name):
         self.__store_in_memory(mem_location=global_var_name, value=0)
 
-    def execute(self, yield_execution=False):
+    def execute(self, yield_execution=False, show_exec_opcodes=False):
         current_global_var = None
         current_global_val_idx = 0
         while not self.__is_opcode_list_end():
             op_code = self.__get_opcode_from_pos()
+
+            if show_exec_opcodes:
+                print(op_code)
 
             if op_code.op_code == "global":
                 global_var_name = op_code.op_value
@@ -286,6 +308,9 @@ class VM:
 
         while not self.__is_opcode_list_end():
             op_code = self.__get_opcode_from_pos()
+
+            if show_exec_opcodes:
+                print(op_code)
 
             if op_code.op_code in ["mov", "movzb", "movsbq"]:
                 value, register = op_code.op_value.split("---")
