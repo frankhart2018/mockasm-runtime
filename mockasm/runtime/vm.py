@@ -32,6 +32,13 @@ class VM:
             "r9": self.__register_tuple(value=None, num_bytes=64),
             "rsp": self.__register_tuple(value=0, num_bytes=64),
             "rbp": self.__register_tuple(value=0, num_bytes=64),
+            "ax": self.__register_tuple(value=None, num_bytes=16),
+            "di": self.__register_tuple(value=None, num_bytes=16),
+            "si": self.__register_tuple(value=None, num_bytes=16),
+            "dx": self.__register_tuple(value=None, num_bytes=16),
+            "cx": self.__register_tuple(value=None, num_bytes=16),
+            "r8w": self.__register_tuple(value=None, num_bytes=16),
+            "r9w": self.__register_tuple(value=None, num_bytes=16),
             "eax": self.__register_tuple(value=None, num_bytes=32),
             "edi": self.__register_tuple(value=None, num_bytes=32),
             "esi": self.__register_tuple(value=None, num_bytes=32),
@@ -174,6 +181,8 @@ class VM:
         mem_location = self.__compute_true_mem_loc(mem_location)
 
         if type(value) == int and type(mem_location) == int and value > 0 and bits != 8:
+            print(self.__get_opcode_from_pos())
+            print(value, bits)
             value = bin(value)[2:]
             value = "0" * (bits - len(value)) + value
             value = [value[i * 8 : (i + 1) * 8] for i in range(bits // 8)]
@@ -204,6 +213,12 @@ class VM:
             and self.__registers[value].num_bytes == 32
         ):
             bits = 32
+        elif(
+            type(value) == str
+            and value in self.__registers.keys()
+            and self.__registers[value].num_bytes == 16
+        ):
+            bits = 16
 
         map_to_higher_reg = (
             True if "(" in register or register.startswith("_") else False
@@ -433,7 +448,7 @@ class VM:
             if show_exec_opcodes:
                 print(op_code)
 
-            if op_code.op_code in ["mov", "movzb", "movsbq", "movsxd"]:
+            if op_code.op_code in ["mov", "movzb", "movsbq", "movsxd", "movswq"]:
                 value, register = op_code.op_value.split("---")
                 self.__execute_move_instruction(value=value, register=register)
                 self.__increment_opcode_ptr()

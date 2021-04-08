@@ -15,6 +15,7 @@ class Lexer:
             "movzb",
             "movsbq",
             "movsxd",
+            "movswq",
             "ret",
             "add",
             "sub",
@@ -60,6 +61,12 @@ class Lexer:
             "r8d",
             "r9d",
             "eax",
+            "di",
+            "si",
+            "dx",
+            "cx",
+            "r8w",
+            "r9w",
         ]
 
     def __get_char_from_pos(self, pos=None):

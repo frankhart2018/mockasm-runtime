@@ -444,7 +444,7 @@ class Parser:
         while not self.__is_token_list_end():
             current_token = self.__get_token_from_pos()
 
-            if current_token.token_type in ["mov", "movzb", "movsbq", "movsxd"]:
+            if current_token.token_type in ["mov", "movzb", "movsbq", "movsxd", "movswq"]:
                 current_opcode = self.__parse_mov(operator=current_token.token_type)
                 self.__append_opcode(opcode=current_opcode)
             elif current_token.token_type == "ret":
