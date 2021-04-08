@@ -113,9 +113,24 @@ class Lexer:
             lexeme += char
             self.__increment_source_ptr()
 
-        lexeme = "-" + lexeme if is_negative else lexeme
+        is_relative_address = False
+        if self.__get_char_from_pos() == "(":
+            while not self.__is_source_end():
+                char = self.__get_char_from_pos()
+                if char == ')':
+                    break
+                
+                lexeme += char
+                self.__increment_source_ptr()
 
-        return token.Token(lexeme=lexeme, token_type="number", line_num=self.__line_num)
+            self.__increment_source_ptr()
+
+            is_relative_address = True
+
+        lexeme = "-" + lexeme if is_negative else lexeme
+        token_type = "number" if not is_relative_address else "relative_address"
+
+        return token.Token(lexeme=lexeme, token_type=token_type, line_num=self.__line_num)
 
     def __identify_location_at(self):
         self.__increment_source_ptr()

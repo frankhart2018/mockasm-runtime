@@ -21,6 +21,9 @@ def run():
     argparser.add_argument(
         "--exec_opcodes", action="store_true", default=False, help="Show executed opcodes"
     )
+    argparser.add_argument(
+        "--exec_steps", action="store_true", default=False, help="Show execution steps"
+    )
     args = argparser.parse_args()
 
     source_code = file_utils.read_file(path=args.file_path)
@@ -55,4 +58,15 @@ def run():
         print("Output")
         print("*" * 50)
 
-    _ = list(vm_obj.execute(show_exec_opcodes=args.exec_opcodes))
+    if args.exec_steps:
+        for sequence in vm_obj.execute(yield_execution=True):
+            if(type(sequence) == dict):
+                print("*" * 50)
+                print(f"Line {sequence['line_num']}")
+                print(f"Flags: {sequence['flags']}")
+                print(f"Registers: {sequence['registers']}")
+                print(f"Memory: {sequence['memory']}")
+                print(f"Stack: {sequence['stack']}")
+                print("*" * 50)
+    else:
+        _ = list(vm_obj.execute(show_exec_opcodes=args.exec_opcodes))

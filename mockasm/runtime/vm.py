@@ -56,11 +56,15 @@ class VM:
 
         return None
 
-    def __parse_value(self, value, error_msg):
+    def __parse_value(self, value, error_msg=None):
         old_value = value
         
-        if not value.startswith("_") and value not in self.__registers.keys():
+        if not value.startswith("_") and value not in self.__registers.keys() and "(" not in value:
             value = int(value)
+        elif "(" in value:
+            index, register = value.split("(")
+            mem_location = int(self.__registers[register]) + int(index)
+            value = self.__read_from_memory(mem_location=mem_location)
         else:
             if value.startswith("_"):
                 if(value[1:].isdigit()):
@@ -70,8 +74,10 @@ class VM:
             else:
                 value = self.__registers[value]
 
-        if value == None:
+        if value == None and error_msg != None:
             error_utils.error(msg=error_msg.replace("{}", old_value))
+        elif value == None and error_msg == None:
+            value = -1
 
         return value
 
@@ -103,11 +109,11 @@ class VM:
 
         if type(value) == int and type(mem_location) == int and value > 0 and not is_8bit_reg:
             value = bin(value)[2:]
-            value = '0' * (32 - len(value)) + value
-            value = [value[i*8:(i+1)*8] for i in range(4)]
+            value = '0' * (64 - len(value)) + value
+            value = [value[i*8:(i+1)*8] for i in range(8)]
             value = [int(binary, 2) for binary in value]
             value = value[::-1]
-            for i in range(4):
+            for i in range(8):
                 self.__memory[mem_location+i] = value[i]
         else:
             self.__memory[mem_location] = value
@@ -124,7 +130,6 @@ class VM:
 
         value = self.__parse_value(
             value=value,
-            error_msg="Register '{}' has not been set, you cannot move it to '" + register + "'"
         )
         
         if register.startswith("_"):
@@ -132,6 +137,10 @@ class VM:
                 self.__store_in_memory(mem_location=register, value=value, is_8bit_reg=is_8bit_reg)
             else:
                 self.__store_in_memory(mem_location=self.__registers[register[1:]], value=value, is_8bit_reg=is_8bit_reg)
+        elif "(" in register:
+            index, register = register.split("(")
+            mem_location = int(self.__registers[register]) + int(index)
+            self.__store_in_memory(mem_location=mem_location, value=value)
         else:
             if self.__get_opcode_from_pos().op_code == "movsbq" and value > 256:
                 value =  int(bin(value)[-8:], 2)
