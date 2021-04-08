@@ -94,9 +94,6 @@ class Lexer:
                 lexeme=lexeme, token_type=lexeme, line_num=self.__line_num
             )
         elif self.__is_register(lexeme=lexeme):
-            r8_to_r64_mapping = {"al": "rax8", "dil": "rdi8", "sil": "rsi8", "dl": "rdx8"}
-            lexeme = r8_to_r64_mapping[lexeme] if lexeme in r8_to_r64_mapping.keys() else lexeme
-
             return token.Token(
                 lexeme=lexeme, token_type="register", line_num=self.__line_num
             )
