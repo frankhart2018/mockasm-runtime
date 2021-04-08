@@ -32,6 +32,7 @@ class VM:
             "r9": self.__register_tuple(value=None, num_bytes=64),
             "rsp": self.__register_tuple(value=0, num_bytes=64),
             "rbp": self.__register_tuple(value=0, num_bytes=64),
+            "eax": self.__register_tuple(value=None, num_bytes=32),
             "edi": self.__register_tuple(value=None, num_bytes=32),
             "esi": self.__register_tuple(value=None, num_bytes=32),
             "edx": self.__register_tuple(value=None, num_bytes=32),
@@ -97,7 +98,8 @@ class VM:
         old_value = value
 
         if map_to_higher_reg:
-            register_mapping = {"al": "rax"}
+            register_mapping = {"al": "rax", "eax": "rax", "edi": "rdi", "esi": "rsi",
+                                "edx": "rdx", "ecx": "rcx", "r8d": "r8", "r9d": "r9"}
             value = (
                 register_mapping[value] if value in register_mapping.keys() else value
             )
@@ -196,6 +198,12 @@ class VM:
         ):
             value = value[:-1] if value != "al" else value
             bits = 8
+        elif(
+            type(value) == str
+            and value in self.__registers.keys()
+            and self.__registers[value].num_bytes == 32
+        ):
+            bits = 32
 
         map_to_higher_reg = (
             True if "(" in register or register.startswith("_") else False
@@ -425,7 +433,7 @@ class VM:
             if show_exec_opcodes:
                 print(op_code)
 
-            if op_code.op_code in ["mov", "movzb", "movsbq"]:
+            if op_code.op_code in ["mov", "movzb", "movsbq", "movsxd"]:
                 value, register = op_code.op_value.split("---")
                 self.__execute_move_instruction(value=value, register=register)
                 self.__increment_opcode_ptr()
