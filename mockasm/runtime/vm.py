@@ -181,8 +181,6 @@ class VM:
         mem_location = self.__compute_true_mem_loc(mem_location)
 
         if type(value) == int and type(mem_location) == int and value > 0 and bits != 8:
-            print(self.__get_opcode_from_pos())
-            print(value, bits)
             value = bin(value)[2:]
             value = "0" * (bits - len(value)) + value
             value = [value[i * 8 : (i + 1) * 8] for i in range(bits // 8)]
