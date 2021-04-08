@@ -430,7 +430,7 @@ class VM:
                 yield {
                     "line_num": executed_opcode.line_num,
                     "flags": self.__flags,
-                    "registers": {register: self.__registers[register].value for register in self.__registers.keys()},
+                    "registers": {register: self.__registers[register].value for register in self.__registers.keys() if self.__registers[register].value != None},
                     "memory": self.__memory,
                     "stack": self.__stack,
                 }
