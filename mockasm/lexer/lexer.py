@@ -52,6 +52,12 @@ class Lexer:
             "cl",
             "r8b",
             "r9b",
+            "edi",
+            "esi",
+            "edx",
+            "ecx",
+            "r8d",
+            "r9d",
         ]
 
     def __get_char_from_pos(self, pos=None):
