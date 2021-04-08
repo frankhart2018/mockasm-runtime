@@ -8,7 +8,9 @@ class VM:
     def __init__(self, opcodes):
         self.__opcodes = opcodes
         self.__current_opcode_ptr = 0
-        self.__register_tuple = collections.namedtuple("register", ["value", "num_bytes"])
+        self.__register_tuple = collections.namedtuple(
+            "register", ["value", "num_bytes"]
+        )
 
         self.__clear_registers()
 
@@ -22,24 +24,20 @@ class VM:
     def __clear_registers(self):
         self.__registers = {
             "rax": self.__register_tuple(value=None, num_bytes=64),
-
             "rdi": self.__register_tuple(value=None, num_bytes=64),
             "rsi": self.__register_tuple(value=None, num_bytes=64),
             "rdx": self.__register_tuple(value=None, num_bytes=64),
             "rcx": self.__register_tuple(value=None, num_bytes=64),
             "r8": self.__register_tuple(value=None, num_bytes=64),
             "r9": self.__register_tuple(value=None, num_bytes=64),
-
             "rsp": self.__register_tuple(value=0, num_bytes=64),
             "rbp": self.__register_tuple(value=0, num_bytes=64),
-
             "edi": self.__register_tuple(value=None, num_bytes=32),
             "esi": self.__register_tuple(value=None, num_bytes=32),
             "edx": self.__register_tuple(value=None, num_bytes=32),
             "ecx": self.__register_tuple(value=None, num_bytes=32),
             "r8d": self.__register_tuple(value=None, num_bytes=32),
             "r9d": self.__register_tuple(value=None, num_bytes=32),
-
             "al": self.__register_tuple(value=None, num_bytes=8),
             "dil": self.__register_tuple(value=None, num_bytes=8),
             "sil": self.__register_tuple(value=None, num_bytes=8),
@@ -79,22 +77,36 @@ class VM:
         current_value = self.__registers[register].value
 
         if op == "add":
-            self.__registers[register] = self.__registers[register]._replace(value=current_value + value)
+            self.__registers[register] = self.__registers[register]._replace(
+                value=current_value + value
+            )
         elif op == "sub":
-            self.__registers[register] = self.__registers[register]._replace(value=current_value - value)
+            self.__registers[register] = self.__registers[register]._replace(
+                value=current_value - value
+            )
         elif op == "mul":
-            self.__registers[register] = self.__registers[register]._replace(value=current_value * value)
+            self.__registers[register] = self.__registers[register]._replace(
+                value=current_value * value
+            )
         elif op == "assign":
-            self.__registers[register] = self.__registers[register]._replace(value=value)
+            self.__registers[register] = self.__registers[register]._replace(
+                value=value
+            )
 
     def __parse_value(self, value, error_msg=None, map_to_higher_reg=False):
         old_value = value
 
         if map_to_higher_reg:
             register_mapping = {"al": "rax"}
-            value = register_mapping[value] if value in register_mapping.keys() else value
-        
-        if not value.startswith("_") and value not in self.__registers.keys() and "(" not in value:
+            value = (
+                register_mapping[value] if value in register_mapping.keys() else value
+            )
+
+        if (
+            not value.startswith("_")
+            and value not in self.__registers.keys()
+            and "(" not in value
+        ):
             value = int(value)
         elif "(" in value:
             index, register = value.split("(")
@@ -102,10 +114,12 @@ class VM:
             value = self.__read_from_memory(mem_location=mem_location)
         else:
             if value.startswith("_"):
-                if(value[1:].isdigit()):
+                if value[1:].isdigit():
                     value = self.__read_from_memory(mem_location=value)
                 else:
-                    value = self.__read_from_memory(mem_location=self.__registers[value[1:]].value)
+                    value = self.__read_from_memory(
+                        mem_location=self.__registers[value[1:]].value
+                    )
             else:
                 value = self.__registers[value].value
 
@@ -119,7 +133,7 @@ class VM:
     def __execute_push_to_stack(self, value):
         value = self.__parse_value(
             value=value,
-            error_msg="Register '{}' has not been set, you cannot push it to stack"
+            error_msg="Register '{}' has not been set, you cannot push it to stack",
         )
 
         self.__stack.append(value)
@@ -128,29 +142,43 @@ class VM:
 
     def __execute_pop_from_stack(self, register):
         value = self.__stack.pop()
-        update_value = int(value) if type(value) != int and not value.startswith("_") and not value.startswith("g_") else value
+        update_value = (
+            int(value)
+            if type(value) != int
+            and not value.startswith("_")
+            and not value.startswith("g_")
+            else value
+        )
         self.__update_reg_value(register=register, value=update_value, op="assign")
-        
+
         self.__update_reg_value(register="rsp", value=8, op="sub")
 
     def __compute_true_mem_loc(self, mem_location):
         if type(mem_location) == int:
             return mem_location
 
-        mem_location = -1 * int(mem_location[1:]) + self.__registers["rbp"].value if mem_location[1:].isdigit() and mem_location[0] == "_" else mem_location
-        return int(mem_location) if type(mem_location) == str and mem_location.isdigit() else mem_location
+        mem_location = (
+            -1 * int(mem_location[1:]) + self.__registers["rbp"].value
+            if mem_location[1:].isdigit() and mem_location[0] == "_"
+            else mem_location
+        )
+        return (
+            int(mem_location)
+            if type(mem_location) == str and mem_location.isdigit()
+            else mem_location
+        )
 
     def __store_in_memory(self, mem_location, value, bits):
         mem_location = self.__compute_true_mem_loc(mem_location)
 
         if type(value) == int and type(mem_location) == int and value > 0 and bits != 8:
             value = bin(value)[2:]
-            value = '0' * (bits - len(value)) + value
-            value = [value[i*8:(i+1)*8] for i in range(bits//8)]
+            value = "0" * (bits - len(value)) + value
+            value = [value[i * 8 : (i + 1) * 8] for i in range(bits // 8)]
             value = [int(binary, 2) for binary in value]
             value = value[::-1]
-            for i in range(bits//8):
-                self.__memory[mem_location+i] = value[i]
+            for i in range(bits // 8):
+                self.__memory[mem_location + i] = value[i]
         else:
             self.__memory[mem_location] = value
 
@@ -160,28 +188,36 @@ class VM:
 
     def __execute_move_instruction(self, value, register):
         bits = 64
-        if type(value) == str and not value.isdigit() and value != "r8" and (value.endswith("8") or value == "al"):
+        if (
+            type(value) == str
+            and not value.isdigit()
+            and value != "r8"
+            and (value.endswith("8") or value == "al")
+        ):
             value = value[:-1] if value != "al" else value
             bits = 8
 
-        map_to_higher_reg = True if "(" in register or register.startswith("_") else False
-        value = self.__parse_value(
-            value=value,
-            map_to_higher_reg=map_to_higher_reg
+        map_to_higher_reg = (
+            True if "(" in register or register.startswith("_") else False
         )
-        
+        value = self.__parse_value(value=value, map_to_higher_reg=map_to_higher_reg)
+
         if register.startswith("_"):
-            if(register[1:].isdigit()):
+            if register[1:].isdigit():
                 self.__store_in_memory(mem_location=register, value=value, bits=bits)
             else:
-                self.__store_in_memory(mem_location=self.__registers[register[1:]].value, value=value, bits=bits)
+                self.__store_in_memory(
+                    mem_location=self.__registers[register[1:]].value,
+                    value=value,
+                    bits=bits,
+                )
         elif "(" in register:
             index, register = register.split("(")
             mem_location = int(self.__registers[register].value) + int(index)
             self.__store_in_memory(mem_location=mem_location, value=value, bits=bits)
         else:
             if self.__get_opcode_from_pos().op_code == "movsbq" and value > 256:
-                value =  int(bin(value)[-8:], 2)
+                value = int(bin(value)[-8:], 2)
             self.__update_reg_value(register=register, value=value, op="assign")
 
     def __execute_return_instruction(self):
@@ -207,19 +243,31 @@ class VM:
 
         value = self.__parse_value(
             value=value,
-            error_msg="Register {} has not been set, you cannot perform " + operator + " operation"
+            error_msg="Register {} has not been set, you cannot perform "
+            + operator
+            + " operation",
         )
 
         new_value = 0
         existing_reg_value = self.__registers[register].value
 
-        if type(existing_reg_value) == str and existing_reg_value.startswith("g_") and not existing_reg_value.startswith("g__"):
-            existing_reg_value = self.__read_from_memory(mem_location=existing_reg_value)
+        if (
+            type(existing_reg_value) == str
+            and existing_reg_value.startswith("g_")
+            and not existing_reg_value.startswith("g__")
+        ):
+            existing_reg_value = self.__read_from_memory(
+                mem_location=existing_reg_value
+            )
 
         if type(value) == str and value.startswith("_"):
             value = -1 * int(value[1:])
 
-        is_global_str_literal = True if type(existing_reg_value) == str and existing_reg_value.startswith("g__") else False
+        is_global_str_literal = (
+            True
+            if type(existing_reg_value) == str and existing_reg_value.startswith("g__")
+            else False
+        )
         if is_global_str_literal:
             value = str(value)
 
@@ -242,19 +290,21 @@ class VM:
 
     def __execute_unary_operation(self, register):
         if self.__registers[register].value == None:
-            error_utils.error(msg=f"Register '{register}' has not been set, cannot negate empty value")
+            error_utils.error(
+                msg=f"Register '{register}' has not been set, cannot negate empty value"
+            )
 
         self.__update_reg_value(register=register, value=-1, op="mul")
 
     def __execute_compare(self, src_register, dst_register):
         src_value = self.__parse_value(
             value=src_register,
-            error_msg="Register '{}' has not been set, cannot use it in cmp"
+            error_msg="Register '{}' has not been set, cannot use it in cmp",
         )
 
         dst_value = self.__parse_value(
             value=dst_register,
-            error_msg="Register '{}' has not been set, cannot use it in cmp"
+            error_msg="Register '{}' has not been set, cannot use it in cmp",
         )
 
         comparison_result = dst_value - src_value
@@ -271,7 +321,11 @@ class VM:
         negative_flag_val = self.__flags["negative"]
         positive_flag_val = self.__flags["positive"]
 
-        register = register[:-1] if type(register) == str and register.endswith("8") else register
+        register = (
+            register[:-1]
+            if type(register) == str and register.endswith("8")
+            else register
+        )
 
         if operator == "sete":
             if zero_flag_val == 1:
@@ -299,7 +353,9 @@ class VM:
         self.__clear_flags()
 
     def __execute_lea(self, address, register):
-        self.__update_reg_value(register=register, value=self.__compute_true_mem_loc(address), op="assign")
+        self.__update_reg_value(
+            register=register, value=self.__compute_true_mem_loc(address), op="assign"
+        )
 
     def __execute_jmp(self, jmp_idx):
         self.__current_opcode_ptr = jmp_idx
@@ -311,13 +367,17 @@ class VM:
         self.__clear_flags()
 
     def __execute_call(self, label):
-        label_opcode = opcode.OpCode(op_code="label", op_value=label.split(".")[-1], line_num=1)
+        label_opcode = opcode.OpCode(
+            op_code="label", op_value=label.split(".")[-1], line_num=1
+        )
         label_opcode_idx = None
 
         label_opcode_idx = self.__find_opcode_idx(op=label_opcode)
 
         if label_opcode_idx == None:
-            error_utils.error(msg=f"Label .L.{label} not found, but used in call statement")
+            error_utils.error(
+                msg=f"Label .L.{label} not found, but used in call statement"
+            )
 
         self.__call_stack.append(self.__current_opcode_ptr)
         self.__current_opcode_ptr = label_opcode_idx
@@ -343,7 +403,11 @@ class VM:
             elif op_code.op_code == "byte":
                 value = int(op_code.op_value)
                 value = 256 - abs(value) if value < 0 else value
-                self.__store_in_memory(mem_location=current_global_var + str(current_global_val_idx), value=value, bits=8)
+                self.__store_in_memory(
+                    mem_location=current_global_var + str(current_global_val_idx),
+                    value=value,
+                    bits=8,
+                )
                 current_global_val_idx += 1
                 self.__increment_opcode_ptr()
             else:
@@ -367,7 +431,7 @@ class VM:
                 self.__increment_opcode_ptr()
             elif op_code.op_code == "ret":
                 is_end = self.__execute_return_instruction()
-                
+
                 if is_end:
                     break
 
@@ -392,22 +456,17 @@ class VM:
             elif op_code.op_code == "cmp":
                 src_register, dst_register = op_code.op_value.split("---")
                 self.__execute_compare(
-                    src_register=src_register,
-                    dst_register=dst_register
+                    src_register=src_register, dst_register=dst_register
                 )
                 self.__increment_opcode_ptr()
             elif op_code.op_code in ["sete", "setne", "setl", "setle"]:
                 self.__execute_comparison_op(
-                    operator=op_code.op_code,
-                    register=op_code.op_value
+                    operator=op_code.op_code, register=op_code.op_value
                 )
                 self.__increment_opcode_ptr()
             elif op_code.op_code == "lea":
                 address, register = op_code.op_value.split("---")
-                self.__execute_lea(
-                    address=address,
-                    register=register
-                )
+                self.__execute_lea(address=address, register=register)
                 self.__increment_opcode_ptr()
             elif op_code.op_code == "jmp":
                 jmp_idx = int(op_code.op_value)
@@ -430,7 +489,11 @@ class VM:
                 yield {
                     "line_num": executed_opcode.line_num,
                     "flags": self.__flags,
-                    "registers": {register: self.__registers[register].value for register in self.__registers.keys() if self.__registers[register].value != None},
+                    "registers": {
+                        register: self.__registers[register].value
+                        for register in self.__registers.keys()
+                        if self.__registers[register].value != None
+                    },
                     "memory": self.__memory,
                     "stack": self.__stack,
                 }

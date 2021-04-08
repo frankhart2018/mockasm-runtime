@@ -9,7 +9,7 @@ class Parser:
         self.__tokens = tokens
         self.__current_token_ptr = 0
         self.__opcodes = []
-        
+
         self.__opcode_idx_to_label = {}
         self.__label_to_opcode_idx = {}
 
@@ -41,8 +41,12 @@ class Parser:
         # operator -> mov/movzb
         # src -> $<number>|<register>|(<register>)|$_<number>
         # dst -> <register>|(<register>)|$_<number>
-        expected_token_sequence = [operator, "number,register,location_at,address,relative_address", 
-                                   "comma", "register,location_at,address,relative_address"]
+        expected_token_sequence = [
+            operator,
+            "number,register,location_at,address,relative_address",
+            "comma",
+            "register,location_at,address,relative_address",
+        ]
 
         value = ""
         register = ""
@@ -54,20 +58,44 @@ class Parser:
             current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
                 current_token_type=current_token.token_type,
-                expected_token_types=[expected_token_type] if type(expected_token_type) == str else expected_token_type,
+                expected_token_types=[expected_token_type]
+                if type(expected_token_type) == str
+                else expected_token_type,
                 error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
             )
 
-            if value == "" and current_token.token_type in ["number", "register", "location_at", "address", "relative_address"]:
-                value = current_token.lexeme if current_token.token_type not in ["location_at", "address"] else "_" + current_token.lexeme
-            elif current_token.token_type in ["number", "register", "location_at", "address", "relative_address"]:
-                register = current_token.lexeme if current_token.token_type not in ["location_at", "address"] else "_" + current_token.lexeme
+            if value == "" and current_token.token_type in [
+                "number",
+                "register",
+                "location_at",
+                "address",
+                "relative_address",
+            ]:
+                value = (
+                    current_token.lexeme
+                    if current_token.token_type not in ["location_at", "address"]
+                    else "_" + current_token.lexeme
+                )
+            elif current_token.token_type in [
+                "number",
+                "register",
+                "location_at",
+                "address",
+                "relative_address",
+            ]:
+                register = (
+                    current_token.lexeme
+                    if current_token.token_type not in ["location_at", "address"]
+                    else "_" + current_token.lexeme
+                )
 
             self.__increment_token_ptr()
 
             line_num = current_token.line_num
 
-        return opcode.OpCode(op_code=operator, op_value=value + "---" + register, line_num=line_num)
+        return opcode.OpCode(
+            op_code=operator, op_value=value + "---" + register, line_num=line_num
+        )
 
     def __parse_ret(self):
         # ret
@@ -81,7 +109,9 @@ class Parser:
 
         self.__increment_token_ptr()
 
-        return opcode.OpCode(op_code="ret", op_value="", line_num=current_token.line_num)
+        return opcode.OpCode(
+            op_code="ret", op_value="", line_num=current_token.line_num
+        )
 
     def __parse_arithmetic_op(self, operator):
         # operator $<number>|<register>, <register>
@@ -98,11 +128,16 @@ class Parser:
             current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
                 current_token_type=current_token.token_type,
-                expected_token_types=[expected_token_type] if type(expected_token_type) == str else expected_token_type,
+                expected_token_types=[expected_token_type]
+                if type(expected_token_type) == str
+                else expected_token_type,
                 error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
             )
 
-            if value == "" and (current_token.token_type == "number" or current_token.token_type == "register"):
+            if value == "" and (
+                current_token.token_type == "number"
+                or current_token.token_type == "register"
+            ):
                 value = current_token.lexeme
             elif expected_token_type == "register":
                 register = current_token.lexeme
@@ -111,7 +146,9 @@ class Parser:
 
             line_num = current_token.line_num
 
-        return opcode.OpCode(op_code=operator, op_value=value + "---" + register, line_num=line_num)
+        return opcode.OpCode(
+            op_code=operator, op_value=value + "---" + register, line_num=line_num
+        )
 
     def __parse_stack_op(self, operator):
         # operator $number|<register>
@@ -127,11 +164,16 @@ class Parser:
             current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
                 current_token_type=current_token.token_type,
-                expected_token_types=[expected_token_type] if type(expected_token_type) == str else expected_token_type,
+                expected_token_types=[expected_token_type]
+                if type(expected_token_type) == str
+                else expected_token_type,
                 error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
             )
 
-            if value == "" and (current_token.token_type == "number" or current_token.token_type == "register"):
+            if value == "" and (
+                current_token.token_type == "number"
+                or current_token.token_type == "register"
+            ):
                 value = current_token.lexeme
 
             self.__increment_token_ptr()
@@ -180,11 +222,16 @@ class Parser:
             current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
                 current_token_type=current_token.token_type,
-                expected_token_types=[expected_token_type] if type(expected_token_type) == str else expected_token_type,
+                expected_token_types=[expected_token_type]
+                if type(expected_token_type) == str
+                else expected_token_type,
                 error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
             )
 
-            if src_register == "" and current_token.token_type in ["number", "register"]:
+            if src_register == "" and current_token.token_type in [
+                "number",
+                "register",
+            ]:
                 src_register = current_token.lexeme
             elif expected_token_type == "register":
                 dest_register = current_token.lexeme
@@ -193,7 +240,11 @@ class Parser:
 
             line_num = current_token.line_num
 
-        return opcode.OpCode(op_code="cmp", op_value=src_register + "---" + dest_register, line_num=line_num)
+        return opcode.OpCode(
+            op_code="cmp",
+            op_value=src_register + "---" + dest_register,
+            line_num=line_num,
+        )
 
     def __parse_set(self, operator):
         # operator $number|<register>
@@ -209,11 +260,16 @@ class Parser:
             current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
                 current_token_type=current_token.token_type,
-                expected_token_types=[expected_token_type] if type(expected_token_type) == str else expected_token_type,
+                expected_token_types=[expected_token_type]
+                if type(expected_token_type) == str
+                else expected_token_type,
                 error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
             )
 
-            if value == "" and (current_token.token_type == "number" or current_token.token_type == "register"):
+            if value == "" and (
+                current_token.token_type == "number"
+                or current_token.token_type == "register"
+            ):
                 value = current_token.lexeme
 
             self.__increment_token_ptr()
@@ -236,12 +292,18 @@ class Parser:
             current_token = self.__get_token_from_pos()
             token_utils.match_tokens(
                 current_token_type=current_token.token_type,
-                expected_token_types=[expected_token_type] if type(expected_token_type) == str else expected_token_type,
+                expected_token_types=[expected_token_type]
+                if type(expected_token_type) == str
+                else expected_token_type,
                 error_msg=f"Expected '{expected_token_type}' got '{current_token.token_type}' at Line {current_token.line_num}",
             )
 
             if current_token.token_type in ["address", "global"]:
-                address = "_" + current_token.lexeme if current_token.token_type == "address" else current_token.lexeme
+                address = (
+                    "_" + current_token.lexeme
+                    if current_token.token_type == "address"
+                    else current_token.lexeme
+                )
             elif expected_token_type == "register":
                 register = current_token.lexeme
 
@@ -249,7 +311,9 @@ class Parser:
 
             line_num = current_token.line_num
 
-        return opcode.OpCode(op_code="lea", op_value=address + "---" + register, line_num=line_num)
+        return opcode.OpCode(
+            op_code="lea", op_value=address + "---" + register, line_num=line_num
+        )
 
     def __parse_jmp(self, operator):
         # operator <label>
@@ -381,9 +445,7 @@ class Parser:
             current_token = self.__get_token_from_pos()
 
             if current_token.token_type in ["mov", "movzb", "movsbq"]:
-                current_opcode = self.__parse_mov(
-                    operator=current_token.token_type
-                )
+                current_opcode = self.__parse_mov(operator=current_token.token_type)
                 self.__append_opcode(opcode=current_opcode)
             elif current_token.token_type == "ret":
                 current_opcode = self.__parse_ret()
@@ -394,7 +456,9 @@ class Parser:
                 )
                 self.__append_opcode(opcode=current_opcode)
             elif current_token.token_type == "cqo":
-                current_opcode = opcode.OpCode(op_code="cqo", op_value="", line_num=current_token.line_num)
+                current_opcode = opcode.OpCode(
+                    op_code="cqo", op_value="", line_num=current_token.line_num
+                )
                 self.__append_opcode(opcode=current_opcode)
                 self.__increment_token_ptr()
             elif current_token.token_type == "neg":
@@ -409,17 +473,13 @@ class Parser:
                 current_opcode = self.__parse_cmp()
                 self.__append_opcode(opcode=current_opcode)
             elif current_token.token_type in ["sete", "setne", "setl", "setle"]:
-                current_opcode = self.__parse_set(
-                    operator=current_token.token_type
-                )
+                current_opcode = self.__parse_set(operator=current_token.token_type)
                 self.__append_opcode(opcode=current_opcode)
             elif current_token.token_type == "lea":
                 current_opcode = self.__parse_lea()
                 self.__append_opcode(opcode=current_opcode)
             elif current_token.token_type in ["jmp", "je"]:
-                current_opcode = self.__parse_jmp(
-                    operator=current_token.token_type
-                )
+                current_opcode = self.__parse_jmp(operator=current_token.token_type)
                 self.__append_opcode(opcode=current_opcode)
             elif current_token.token_type == "label":
                 current_opcode = self.__parse_label()

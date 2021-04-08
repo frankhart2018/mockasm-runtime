@@ -54,9 +54,11 @@ setup(
             "templates/index.html",
         ]
     },
-    entry_points={"console_scripts": [
-        "mockasm = mockasm.mockasm:run",
-        "asmdebug = mockasm.app.run_app:run"
-    ]},
+    entry_points={
+        "console_scripts": [
+            "mockasm = mockasm.mockasm:run",
+            "asmdebug = mockasm.app.run_app:run",
+        ]
+    },
     install_requires=["flask"],
 )

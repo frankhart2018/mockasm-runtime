@@ -14,21 +14,23 @@ app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 app.secret_key = "my-secret-key"
 app.config["SESSION_TYPE"] = "filesystem"
 
-@app.route("/", methods=['GET'])
+
+@app.route("/", methods=["GET"])
 def index():
 
     if request.method == "GET":
         return render_template("index.html")
 
-@app.route("/get-output", methods=['POST'])
+
+@app.route("/get-output", methods=["POST"])
 def get_output():
 
     if request.method == "POST":
-        path = request.form['path']
-        
-        session['sequence_of_execution'] = None
-        session['sequence_ptr'] = None
-        session['source_code'] = None
+        path = request.form["path"]
+
+        session["sequence_of_execution"] = None
+        session["sequence_ptr"] = None
+        session["source_code"] = None
 
         source_code = file_utils.read_file(path=path)
 
@@ -52,47 +54,58 @@ def get_output():
 
         source_lines = source_code.split("\n")
         for sequence in sequence_of_execution:
-            sequence['source_code'] = source_lines[sequence['line_num'] - 1]
+            sequence["source_code"] = source_lines[sequence["line_num"] - 1]
 
-        session['sequence_of_execution'] = sequence_of_execution
-        session['sequence_ptr'] = 1
-        session['source_code'] = source_code
+        session["sequence_of_execution"] = sequence_of_execution
+        session["sequence_ptr"] = 1
+        session["source_code"] = source_code
 
-        return jsonify({
-            "icon": "success",
-            "title": "Success",
-            "text": "Code executed successfully!",
-            "output": output,
-            "sequence_of_execution": sequence_of_execution[0],
-            "source_code": source_code,
-        })
+        return jsonify(
+            {
+                "icon": "success",
+                "title": "Success",
+                "text": "Code executed successfully!",
+                "output": output,
+                "sequence_of_execution": sequence_of_execution[0],
+                "source_code": source_code,
+            }
+        )
 
-@app.route("/next-output", methods=['POST'])
+
+@app.route("/next-output", methods=["POST"])
 def next_output():
 
-    if request.method == 'POST':
-        sequence_of_execution = session.get('sequence_of_execution', None)
-        sequence_ptr = session.get('sequence_ptr', None)
-        source_code = session.get('source_code', None)
+    if request.method == "POST":
+        sequence_of_execution = session.get("sequence_of_execution", None)
+        sequence_ptr = session.get("sequence_ptr", None)
+        source_code = session.get("source_code", None)
 
-        if sequence_of_execution != None and sequence_ptr != None and source_code != None:
+        if (
+            sequence_of_execution != None
+            and sequence_ptr != None
+            and source_code != None
+        ):
             current_sequence = sequence_of_execution[sequence_ptr]
 
-            session['sequence_ptr'] += 1
+            session["sequence_ptr"] += 1
 
-            if session['sequence_ptr'] >= len(session['sequence_of_execution']):
-                session['sequence_ptr'] = 0
+            if session["sequence_ptr"] >= len(session["sequence_of_execution"]):
+                session["sequence_ptr"] = 0
 
-            return jsonify({
-                "icon": "",
-                "title": "",
-                "text": "",
-                "current_sequence": current_sequence,
-                "source_code": source_code
-            })
+            return jsonify(
+                {
+                    "icon": "",
+                    "title": "",
+                    "text": "",
+                    "current_sequence": current_sequence,
+                    "source_code": source_code,
+                }
+            )
         else:
-            return jsonify({
-                "icon": "error",
-                "title": "Error",
-                "text": "No sequence found, make sure you have run the code!"
-            })
+            return jsonify(
+                {
+                    "icon": "error",
+                    "title": "Error",
+                    "text": "No sequence found, make sure you have run the code!",
+                }
+            )

@@ -9,6 +9,7 @@ from .runtime import vm
 import copy
 import json
 
+
 def run():
     argparser = argparse.ArgumentParser(description="Mock ASM")
     argparser.add_argument("--file_path", type=str, default="", help="Path to asm code")
@@ -19,7 +20,10 @@ def run():
         "--opcodes", action="store_true", default=False, help="Show opcodes"
     )
     argparser.add_argument(
-        "--exec_opcodes", action="store_true", default=False, help="Show executed opcodes"
+        "--exec_opcodes",
+        action="store_true",
+        default=False,
+        help="Show executed opcodes",
     )
     argparser.add_argument(
         "--exec_steps", action="store_true", default=False, help="Show execution steps"
@@ -60,7 +64,7 @@ def run():
 
     if args.exec_steps:
         for sequence in vm_obj.execute(yield_execution=True):
-            if(type(sequence) == dict):
+            if type(sequence) == dict:
                 print("*" * 50)
                 print(f"Line {sequence['line_num']}")
                 print(f"Flags: {sequence['flags']}")

@@ -114,9 +114,9 @@ class Lexer:
         if self.__get_char_from_pos() == "(":
             while not self.__is_source_end():
                 char = self.__get_char_from_pos()
-                if char == ')':
+                if char == ")":
                     break
-                
+
                 lexeme += char
                 self.__increment_source_ptr()
 
@@ -127,19 +127,23 @@ class Lexer:
         lexeme = "-" + lexeme if is_negative else lexeme
         token_type = "number" if not is_relative_address else "relative_address"
 
-        return token.Token(lexeme=lexeme, token_type=token_type, line_num=self.__line_num)
+        return token.Token(
+            lexeme=lexeme, token_type=token_type, line_num=self.__line_num
+        )
 
     def __identify_location_at(self):
         self.__increment_source_ptr()
 
         temp_token = self.__identify_keyword()
-        
+
         current_char = self.__get_char_from_pos()
         if current_char == ")":
             return token.Token(
-                lexeme=f"{temp_token.lexeme}", token_type="location_at", line_num=temp_token.line_num
+                lexeme=f"{temp_token.lexeme}",
+                token_type="location_at",
+                line_num=temp_token.line_num,
             )
-        
+
         error_utils.error(msg="Missing closing parantheses in location_at register")
 
     def __identify_label(self):
@@ -153,20 +157,18 @@ class Lexer:
 
         while not self.__is_source_end():
             char = self.__get_char_from_pos()
-            if not char.isalpha() and char != '_' and not char.isdigit():
+            if not char.isalpha() and char != "_" and not char.isdigit():
                 break
 
             lexeme += char
             self.__increment_source_ptr()
 
-        return token.Token(
-            lexeme=lexeme, token_type="label", line_num=self.__line_num
-        )
+        return token.Token(lexeme=lexeme, token_type="label", line_num=self.__line_num)
 
     def __skip_comments(self):
         while not self.__is_source_end():
             char = self.__get_char_from_pos()
-            if char == '\n':
+            if char == "\n":
                 break
 
             self.__increment_source_ptr()
@@ -182,7 +184,7 @@ class Lexer:
 
         while not self.__is_source_end():
             char = self.__get_char_from_pos()
-            if not char.isalpha() and char != '_' and not char.isdigit():
+            if not char.isalpha() and char != "_" and not char.isdigit():
                 break
 
             lexeme += char
@@ -201,10 +203,10 @@ class Lexer:
                 self.__append_token(token=current_token)
             elif char == "$":
                 self.__increment_source_ptr()
-                
+
                 is_address = False
                 current_char = self.__get_char_from_pos()
-                if current_char == '_':
+                if current_char == "_":
                     is_address = True
                     self.__increment_source_ptr()
 
@@ -214,7 +216,7 @@ class Lexer:
                     current_token = token.Token(
                         lexeme=current_token.lexeme,
                         token_type="address",
-                        line_num=current_token.line_num
+                        line_num=current_token.line_num,
                     )
 
                 self.__append_token(token=current_token)
@@ -241,17 +243,19 @@ class Lexer:
                     self.__append_token(token=current_token)
                 else:
                     self.__increment_source_ptr()
-            elif char == ':':
-                self.__append_token(token.Token(
-                    lexeme=':', token_type='colon', line_num=self.__line_num
-                ))
+            elif char == ":":
+                self.__append_token(
+                    token.Token(
+                        lexeme=":", token_type="colon", line_num=self.__line_num
+                    )
+                )
                 self.__increment_source_ptr()
-            elif char == '#':
+            elif char == "#":
                 self.__skip_comments()
             elif char.isdigit():
                 current_token = self.__identify_number()
                 self.__append_token(token=current_token)
-            elif char == '-':
+            elif char == "-":
                 self.__increment_source_ptr()
                 current_char = self.__get_char_from_pos()
                 if current_char.isdigit():
