@@ -110,6 +110,10 @@ class VM:
             value = (
                 register_mapping[value] if value in register_mapping.keys() else value
             )
+        else:
+            # Mandatory mapping
+            register_mapping = {"eax": "rax", "edi": "rdi"}
+            value = register_mapping[value] if value in register_mapping.keys() else value
 
         if (
             not value.startswith("_")
@@ -257,7 +261,7 @@ class VM:
             return False
 
     def __execute_arithmetic_operation(self, value, register, operator):
-        if self.__registers[register].value == None:
+        if self.__registers[register].value == None and self.__registers[register].num_bytes != 32:
             error_utils.error(
                 msg=f"Register {register} does not have any value, set a value to perform arithmetic operation"
             )
@@ -269,8 +273,12 @@ class VM:
             + " operation",
         )
 
+        # Mandatory mapping
+        register_mapping = {"eax": "rax", "edi": "rdi"}
+        register = register_mapping[register] if register in register_mapping.keys() else register
+
         new_value = 0
-        existing_reg_value = self.__registers[register].value
+        existing_reg_value = self.__registers[register].value 
 
         if (
             type(existing_reg_value) == str
@@ -463,7 +471,7 @@ class VM:
                     value=value, register=register, operator=op_code.op_code
                 )
                 self.__increment_opcode_ptr()
-            elif op_code.op_code == "cqo":
+            elif op_code.op_code in ["cqo", "cdq"]:
                 self.__increment_opcode_ptr()
             elif op_code.op_code == "neg":
                 self.__execute_unary_operation(register=op_code.op_value)

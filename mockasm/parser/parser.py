@@ -455,9 +455,9 @@ class Parser:
                     operator=current_token.token_type
                 )
                 self.__append_opcode(opcode=current_opcode)
-            elif current_token.token_type == "cqo":
+            elif current_token.token_type in ["cqo", "cdq"]:
                 current_opcode = opcode.OpCode(
-                    op_code="cqo", op_value="", line_num=current_token.line_num
+                    op_code=current_token.token_type, op_value="", line_num=current_token.line_num
                 )
                 self.__append_opcode(opcode=current_opcode)
                 self.__increment_token_ptr()
